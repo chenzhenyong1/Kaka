@@ -21,7 +21,12 @@
 #import "EyePictureListController.h"
 #import "TZImagePickerController.h"
 
-@interface EyeFindViewController ()<UITableViewDataSource,UITableViewDelegate,TZImagePickerControllerDelegate>
+@interface EyeFindViewController ()
+<
+    UITableViewDataSource,
+    UITableViewDelegate,
+    TZImagePickerControllerDelegate
+>
 @property (nonatomic, strong) UISegmentedControl *segCtl;
 
 /** 弹出视图 */
