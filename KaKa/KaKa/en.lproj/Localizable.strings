@@ -1,0 +1,13 @@
+/* 
+  Localization.strings
+  KaKa
+
+  Created by 深圳市 秀软科技有限公司 on 16/7/18.
+  Copyright © 2016年 深圳市秀软科技有限公司. All rights reserved.
+*/
+
+// Tabbar
+"Tabbar_title_1" = "Discover";
+"Tabbar_title_2" = "Camera";
+"Tabbar_title_3" = "Albums";
+"Tabbar_title_4" = "Me";

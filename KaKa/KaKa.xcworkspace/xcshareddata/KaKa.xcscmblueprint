@@ -1,0 +1,25 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "f095abde-68ae-0947-8bc6-9838d341afdb++883",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+    "f095abde-68ae-0947-8bc6-9838d341afdb++883" : {
+
+    }
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "f095abde-68ae-0947-8bc6-9838d341afdb++883" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "7153A4A4-DE61-4C8A-91B3-2622AF30EE12",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "f095abde-68ae-0947-8bc6-9838d341afdb++883" : "KaKa\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "KaKa",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "KaKa.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/192.168.1.209\/svn\/Kaka",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "f095abde-68ae-0947-8bc6-9838d341afdb++883"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+platform :ios, '7.0'
+
+target 'KaKa' do
+pod 'AFNetworking', '~> 3.1.0'              #网络请求
+
+#platform :ios, '6.1'
+pod 'SDWebImage', '~>3.7'                   #图片缓存
+#
+pod 'MJRefresh'
+#
+pod 'MBProgressHUD'
+
+pod 'BaiduMapKit'                           #百度地图SDK
+#
+pod 'FMDB' , '~> 2.5'  #数据库
+
+pod 'CocoaLumberjack', '~> 2.0'
+
+pod 'TuSDK'
+
+
+## pod 'FMDB/FTS'   # FMDB with FTS
+## pod 'FMDB/standalone'   # FMDB with latest SQLite amalgamation source
+## pod 'FMDB/standalone/FTS'   # FMDB with latest SQLite amalgamation source and FTS
+## pod 'FMDB/SQLCipher'   # FMDB with SQLCipher
+#
+#pod 'QBImagePickerController', '~> 2.5.2'   #相册
+#
+#pod 'EaseMobSDK', '~> 2.1.9'                #环信聊天
+#
+#pod 'JSONModel', '~> 1.1.0'                 #model格式化
+#
+pod 'MJExtension', '~> 3.0.10'               #model格式化
+#
+#pod 'jastor', '~> 0.2.1'                    #model格式化
+#
+#pod 'pop', '~> 1.0'                         #pop动画
+#
+#pod 'OBShapedButton'                        #不规则按钮
+#
+#pod 'FBGlowLabel', '~> 0.0.1'               #外发光
+#
+#pod 'MarqueeLabel', '~> 2.2.5'              #滚栋文本
+#
+#pod 'CorePlot', '~> 1.6'                    #图表
+
+#pod 'UMengAnalytics-NO-IDFA'                #无IDFA版SDK（请根据需要选择其中一个）
+
+pod 'IQKeyboardManager'                     #处理键盘遮挡问题
+
+#pod 'CocoaSecurity'                         #AES加密
+#pod 'Pingpp/Wx', '~> 2.1.0'
+#pod 'Pingpp/Alipay', '~> 2.2.4'
+#pod 'Pingpp/UnionPay', '~> 2.2.4'
+
+pod 'Masonry', '~> 1.0.0'                    #自动布局
+pod 'QQOpenSDK', '~> 2.9.5'                  #@qq sdk
+pod 'libWeChatSDK', '~> 1.7.1'               #微信 sdk
+
+pod 'CocoaAsyncSocket', '~> 7.4.3'           #socket
+
+pod 'CocoaSecurity'
+
+#pod 'MobileVLCKit', '~> 2.2.2'
+
+pod 'AliyunOSSiOS' #阿里云Sdk
+pod 'GDRSImageCache',   '~> 1.0' #简单的缓存和图片大小调整库
+pod 'UMengSocialCOM', '~> 5.2.1' #友盟分享
+pod 'TMCache'                    #快速并行对象缓存
+end
+
+#pod install --verbose --no-repo-update      #安装命令
+#pod update --verbose --no-repo-update       #更新命令
+
