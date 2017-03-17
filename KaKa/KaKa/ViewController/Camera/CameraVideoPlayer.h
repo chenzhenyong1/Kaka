@@ -7,7 +7,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "RTSPPlayer.h"
 #import "XKFFmpegPlayer.h"
 
 
