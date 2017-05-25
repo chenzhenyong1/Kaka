@@ -124,7 +124,7 @@ int itemListCount = 0;
 
 - (void)setupNav
 {
-    self.title = @"违章举报";
+    self.title = @"违章曝光";
     
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
     [btn setImage:[UIImage imageNamed:@"find_back"] forState:UIControlStateNormal];

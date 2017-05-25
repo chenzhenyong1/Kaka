@@ -28,6 +28,7 @@
 @implementation CameraDetailCycleVideoCollectionViewCell
 {
     UIView *_cover;//蒙版
+    MBProgressHUD *hud;
 }
 
 - (void)dealloc
@@ -184,7 +185,7 @@
     //手机存储小于500MB时
     if (![self Reserved])
     {
-//        [self addActityText:@"手机内存不足" deleyTime:1];
+        [self addActityText:@"手机存储小于500MB,请清理手机存储空间" deleyTime:1.0];
         
         return;
     }
@@ -397,4 +398,20 @@
     }
     return _downloadRateLabel;
 }
+
+//文字提示框
+- (void)addActityText:(NSString *)text deleyTime:(float)duration;
+{
+    [hud removeFromSuperview];
+    hud = nil;
+    hud = [MBProgressHUD showHUDAddedTo:self animated:YES];
+    hud.mode = MBProgressHUDModeText;
+    hud.bezelView.color = RGBACOLOR(102, 102, 102, 1);
+    hud.label.text = text;
+    hud.margin = 15;
+    hud.bezelView.layer.cornerRadius = 3;
+    [hud hideAnimated:YES afterDelay:duration];
+}
+
+
 @end

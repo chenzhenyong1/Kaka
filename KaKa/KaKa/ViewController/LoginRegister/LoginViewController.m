@@ -409,7 +409,8 @@
         }];
 
     } failed:^(NSError *error) {
-        
+        NSString *errorStr = [NSString stringWithFormat:@"错误码: %ld",(long)error.code];
+        [self addActityText:errorStr deleyTime:1.0];
     }];
     
 }

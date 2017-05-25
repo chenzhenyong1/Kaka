@@ -8,7 +8,7 @@
 
 #import "CameraBluetoothHFViewController.h"
 #import <CoreBluetooth/CoreBluetooth.h>
-
+#import <MobileCoreServices/MobileCoreServices.h>
 @interface CameraBluetoothHFViewController ()
 
 @property (nonatomic, strong)CBCentralManager *CBManager;
@@ -100,23 +100,29 @@
             }
            else
             {
+                
+                
+                NSURL *url = nil;
                 if (IOS10_OR_LATER)
                 {
                     // ios 10跳转蓝牙的方法
-                    if (_CBManager) {
-                        _CBManager = nil;
-                        _CBManager = [[CBCentralManager alloc] initWithDelegate:nil queue:nil];
-                    }else{
-                        _CBManager = [[CBCentralManager alloc] initWithDelegate:nil queue:nil];
-                    }
+//                    [self openBluetoothInIOS10];
+                    //蓝牙设置界面
+                    url = [NSURL URLWithString:@"App-Prefs:root=Bluetooth"];
+                    
+                    
                 } else {
                     //蓝牙设置界面
-                    NSURL *url = [NSURL URLWithString:@"prefs:root=Bluetooth"];
-                    if ([[UIApplication sharedApplication] canOpenURL:url])
-                    {
-                        [[UIApplication sharedApplication] openURL:url];
-                    }
+                    url = [NSURL URLWithString:@"prefs:root=Bluetooth"];
+                    
                 }
+                
+                if ([[UIApplication sharedApplication] canOpenURL:url])
+                {
+                    [[UIApplication sharedApplication] openURL:url];
+                }
+                
+                [self removeActityLoading];
                 
             }
         }
@@ -140,5 +146,28 @@
     }
 }
 
+//- (void)openBluetoothInIOS10
+//{
+//    NSString * defaultWork = [self getDefaultWork];
+//    NSString * bluetoothMethod = [self getBluetoothMethod];
+//    NSURL*url=[NSURL URLWithString:@"Prefs:root=Bluetooth"];
+//    Class LSApplicationWorkspace = NSClassFromString(@"LSApplicationWorkspace");
+//    [[LSApplicationWorkspace  performSelector:NSSelectorFromString(defaultWork)]   performSelector:NSSelectorFromString(bluetoothMethod) withObject:url     withObject:nil];
+//}
+//
+//-(NSString *) getDefaultWork{
+//    NSData *dataOne = [NSData dataWithBytes:(unsigned char []){0x64,0x65,0x66,0x61,0x75,0x6c,0x74,0x57,0x6f,0x72,0x6b,0x73,0x70,0x61,0x63,0x65} length:16];
+//    NSString *method = [[NSString alloc] initWithData:dataOne encoding:NSASCIIStringEncoding];
+//    return method;
+//}
+//
+//-(NSString *) getBluetoothMethod{
+//    NSData *dataOne = [NSData dataWithBytes:(unsigned char []){0x6f, 0x70, 0x65, 0x6e, 0x53, 0x65, 0x6e, 0x73, 0x69,0x74, 0x69,0x76,0x65,0x55,0x52,0x4c} length:16];
+//    NSString *keyone = [[NSString alloc] initWithData:dataOne encoding:NSASCIIStringEncoding];
+//    NSData *dataTwo = [NSData dataWithBytes:(unsigned char []){0x77,0x69,0x74,0x68,0x4f,0x70,0x74,0x69,0x6f,0x6e,0x73} length:11];
+//    NSString *keytwo = [[NSString alloc] initWithData:dataTwo encoding:NSASCIIStringEncoding];
+//    NSString *method = [NSString stringWithFormat:@"%@%@%@%@",keyone,@":",keytwo,@":"];
+//    return method;
+//}
 
 @end

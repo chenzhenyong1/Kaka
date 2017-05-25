@@ -24,6 +24,9 @@
 @property (nonatomic, strong) NSMutableArray *annotationObjects; //标注数组
 
 @property (nonatomic, strong) AlbumsTravelDetailModel *selectedDetailModel;
+
+/** 坐标数组 */
+@property (nonatomic, assign) CLLocationCoordinate2D *coords;
 @end
 
 @implementation AlbumsTravelAddViewController
@@ -32,7 +35,7 @@
     BMKPolyline *polyline;
     UIScrollView *_timeAxisScrollView;
     NSMutableArray *times;
-    CLLocationCoordinate2D coords[99];
+//    CLLocationCoordinate2D coords[1000];
 }
 
 
@@ -59,11 +62,9 @@
     [self addTitle:@"编辑游记"];
     _annotationObjects = [[NSMutableArray alloc] init];
     
-    [self addBackButtonWith:nil];
+    _coords = malloc([_travelDetailArray count] * sizeof(CLLocationCoordinate2D));
     
-//    [self addRightButtonWithName:@"确定" wordNum:2 actionBlock:^(UIButton *sender) {
-//        
-//    }];
+    [self addBackButtonWith:nil];
     
     [self addMapView];
     
@@ -152,45 +153,45 @@
         
         for (NSInteger i = 0; i < _travelDetailArray.count + 2; i++) {
             if (i == 0) {
-                coords[i] = [MyTools getLocationWithGPRMC:self.model.startPostion];
+                _coords[i] = [MyTools getLocationWithGPRMC:self.model.startPostion];
             } else if (i == _travelDetailArray.count + 1) {
-                coords[i] = [MyTools getLocationWithGPRMC:self.model.endPostion];
+                _coords[i] = [MyTools getLocationWithGPRMC:self.model.endPostion];
             } else {
                 AlbumsTravelDetailModel *model = [_travelDetailArray objectAtIndex:i - 1];
-                coords[i] = [MyTools getLocationWithGPRMC:model.gps];
+                _coords[i] = [MyTools getLocationWithGPRMC:model.gps];
             }
         }
 
         //构建BMKPolyline,使用分段颜色索引，其对应的BMKPolylineView必须设置colors属性
-        polyline = [BMKPolyline polylineWithCoordinates:coords count:_travelDetailArray.count + 2 textureIndex:@[@0]];
+        polyline = [BMKPolyline polylineWithCoordinates:_coords count:_travelDetailArray.count + 2 textureIndex:@[@0]];
     }
     [_mapView addOverlay:polyline];
     
     //计算最优视野
     double maxLon ,minLon ,maxLat , minLat;
     //经度
-    maxLon = coords[0].longitude;
-    minLon = coords[0].longitude;
+    maxLon = _coords[0].longitude;
+    minLon = _coords[0].longitude;
     //纬度
-    maxLat = coords[0].latitude;
-    minLat = coords[0].latitude;
+    maxLat = _coords[0].latitude;
+    minLat = _coords[0].latitude;
     
     for (int i = 0; i < _travelDetailArray.count + 2; i++) {
         //最大纬度
-        if (coords[i].latitude > maxLat) {
-            maxLat = coords[i].latitude;
+        if (_coords[i].latitude > maxLat) {
+            maxLat = _coords[i].latitude;
         }
         //最小纬度
-        if (coords[i].latitude < minLat) {
-            minLat = coords[i].latitude;
+        if (_coords[i].latitude < minLat) {
+            minLat = _coords[i].latitude;
         }
         //最大经度
-        if (coords[i].longitude > maxLon) {
-            maxLon = coords[i].longitude;
+        if (_coords[i].longitude > maxLon) {
+            maxLon = _coords[i].longitude;
         }
         //最小经度
-        if (coords[i].longitude < minLon) {
-            minLon = coords[i].longitude;
+        if (_coords[i].longitude < minLon) {
+            minLon = _coords[i].longitude;
         }
         
     }
@@ -198,13 +199,13 @@
     
     PRGAnnotation *annotation1 = [[PRGAnnotation alloc] init];
     annotation1.type = @"0";
-    annotation1.coordinate = coords[0];
+    annotation1.coordinate = _coords[0];
     [_mapView addAnnotation:annotation1];
     [_annotationObjects addObject:annotation1];
     
     PRGAnnotation *annotation2 = [[PRGAnnotation alloc] init];
     annotation2.type = @"2";
-    annotation2.coordinate = coords[_travelDetailArray.count + 1];
+    annotation2.coordinate = _coords[_travelDetailArray.count + 1];
     [_mapView addAnnotation:annotation2];
     [_annotationObjects addObject:annotation2];
     
@@ -522,7 +523,7 @@
     
     PRGAnnotation *annotation = [[PRGAnnotation alloc] init];
     annotation.type = @"1";
-    annotation.coordinate = coords[index];
+    annotation.coordinate = _coords[index];
     
     if (index == 0) {
         // 开始

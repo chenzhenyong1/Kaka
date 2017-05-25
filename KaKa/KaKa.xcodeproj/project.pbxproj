@@ -267,6 +267,7 @@
 		9FFC4C641D3A1A67009D0869 /* RootViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 9FFC4C631D3A1A67009D0869 /* RootViewController.mm */; };
 		9FFC4C671D3A1A76009D0869 /* BaseViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9FFC4C661D3A1A76009D0869 /* BaseViewController.m */; };
 		9FFD27AB1D5CA87B00C46F5C /* libbz2.1.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9FFD27AA1D5CA87B00C46F5C /* libbz2.1.0.tbd */; };
+		AA41641E1EADF65B0013B6F4 /* PhotoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = AA41641D1EADF65B0013B6F4 /* PhotoCell.m */; };
 		AA7613311E7BCF9E0017294F /* libavcodec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AA76132A1E7BCF9E0017294F /* libavcodec.a */; };
 		AA7613321E7BCF9E0017294F /* libavdevice.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AA76132B1E7BCF9E0017294F /* libavdevice.a */; };
 		AA7613331E7BCF9E0017294F /* libavfilter.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AA76132C1E7BCF9E0017294F /* libavfilter.a */; };
@@ -829,6 +830,8 @@
 		9FFC4C651D3A1A76009D0869 /* BaseViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BaseViewController.h; sourceTree = "<group>"; };
 		9FFC4C661D3A1A76009D0869 /* BaseViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseViewController.m; sourceTree = "<group>"; };
 		9FFD27AA1D5CA87B00C46F5C /* libbz2.1.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libbz2.1.0.tbd; path = usr/lib/libbz2.1.0.tbd; sourceTree = SDKROOT; };
+		AA41641C1EADF65B0013B6F4 /* PhotoCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PhotoCell.h; sourceTree = "<group>"; };
+		AA41641D1EADF65B0013B6F4 /* PhotoCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PhotoCell.m; sourceTree = "<group>"; };
 		AA7612C41E7BCF9E0017294F /* avcodec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avcodec.h; sourceTree = "<group>"; };
 		AA7612C51E7BCF9E0017294F /* avfft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avfft.h; sourceTree = "<group>"; };
 		AA7612C61E7BCF9E0017294F /* d3d11va.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = d3d11va.h; sourceTree = "<group>"; };
@@ -931,6 +934,7 @@
 		AA76132E1E7BCF9E0017294F /* libavutil.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libavutil.a; sourceTree = "<group>"; };
 		AA76132F1E7BCF9E0017294F /* libswresample.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libswresample.a; sourceTree = "<group>"; };
 		AA7613301E7BCF9E0017294F /* libswscale.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libswscale.a; sourceTree = "<group>"; };
+		AA7EEE331EA0662F0030ABF4 /* KaKa.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KaKa.entitlements; sourceTree = "<group>"; };
 		AA904D1B1E272DFC00E1F43A /* CameraDetailCycleVideoCollectionViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CameraDetailCycleVideoCollectionViewCell.h; sourceTree = "<group>"; };
 		AA904D1C1E272DFC00E1F43A /* CameraDetailCycleVideoCollectionViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CameraDetailCycleVideoCollectionViewCell.m; sourceTree = "<group>"; };
 		AAB4D9361D96093D00029C4A /* EyePictureChangeController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyePictureChangeController.h; sourceTree = "<group>"; };
@@ -1828,6 +1832,8 @@
 				9F177F861D4B5B0000B3870B /* AlbumsTravelAddViewController.m */,
 				122795481D5865B5001E1472 /* AlbumsTravelReviewViewDetailController.h */,
 				122795491D5865B5001E1472 /* AlbumsTravelReviewViewDetailController.m */,
+				AA41641C1EADF65B0013B6F4 /* PhotoCell.h */,
+				AA41641D1EADF65B0013B6F4 /* PhotoCell.m */,
 				9F17C8D51D58854900D17511 /* AlbumsTravelAddCollectionViewCell.h */,
 				9F17C8D61D58854900D17511 /* AlbumsTravelAddCollectionViewCell.m */,
 				9F17C8D21D58817B00D17511 /* LXReorderableCollectionViewFlowLayout.h */,
@@ -2181,6 +2187,7 @@
 		9FFC4AAF1D3A0D49009D0869 /* KaKa */ = {
 			isa = PBXGroup;
 			children = (
+				AA7EEE331EA0662F0030ABF4 /* KaKa.entitlements */,
 				9FDD856E1D3C8B5100CE8DA6 /* ThirdFrame */,
 				9FDD85761D3C8B9200CE8DA6 /* RequestManager */,
 				9FDD857D1D3C8BB100CE8DA6 /* View */,
@@ -2568,6 +2575,11 @@
 						CreatedOnToolsVersion = 7.3.1;
 						DevelopmentTeam = 784AH5K2L2;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 1;
+							};
+						};
 					};
 					9FFC4AC51D3A0D49009D0869 = {
 						CreatedOnToolsVersion = 7.3.1;
@@ -2788,6 +2800,7 @@
 				12F5D3C81D48A234002055C0 /* AlbumsPathViewControllerTableViewCell.m in Sources */,
 				12EF1D9B1D6EC44800C44936 /* AlbumsPathModel.m in Sources */,
 				9F0995B11D48844B00FBD572 /* CameraModeViewController.m in Sources */,
+				AA41641E1EADF65B0013B6F4 /* PhotoCell.m in Sources */,
 				9F5FE7521D46F4BA00445AE6 /* CameraPwdViewController.m in Sources */,
 				AAC740EE1D87A55800A2FE53 /* EyeChangeCoverController.m in Sources */,
 				9F05F0461D7E6585003B350E /* EyeSquareViewController.m in Sources */,
@@ -3124,6 +3137,7 @@
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "Brand Assets";
+				CODE_SIGN_ENTITLEMENTS = KaKa/KaKa.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = 784AH5K2L2;
@@ -3241,6 +3255,7 @@
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "Brand Assets";
+				CODE_SIGN_ENTITLEMENTS = KaKa/KaKa.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution: Shenzhen E-eye High Tech. Co., Ltd (784AH5K2L2)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = 784AH5K2L2;

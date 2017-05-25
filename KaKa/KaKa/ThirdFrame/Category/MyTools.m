@@ -320,7 +320,7 @@ static CGRect oldframe;
 //解析获取经纬度
 + (CLLocationCoordinate2D)getLocationWithGPRMC:(NSString *)cprmc
 {
-//    cprmc = @"$GPRMC,A*2C";
+//    cprmc = @"$GPRMC,,,,,,,,A*2C";
     NSArray *temp_arr = [cprmc componentsSeparatedByString:@","];
     
     if (temp_arr.count < 6) {

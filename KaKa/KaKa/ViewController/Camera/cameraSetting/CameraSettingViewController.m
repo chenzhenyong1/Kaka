@@ -150,6 +150,8 @@
 
 - (void)getSDData
 {
+    [self addActityLoading:nil subTitle:nil];
+    
     AsyncSocketManager *socketManager = [AsyncSocketManager sharedAsyncSocketManager];
     MsgModel *msg = [[MsgModel alloc] init];
     msg.cmdId = @"09";
@@ -178,6 +180,7 @@
             }
             
              [weakSelf.tableView reloadData];
+            [self removeActityLoading];
              } andFailed:^(NSError *error) {
                  
              }];
@@ -188,6 +191,7 @@
 
 - (void)getSocketData
 {
+    [self addActityLoading:nil subTitle:nil];
     
     AsyncSocketManager *socketManager = [AsyncSocketManager sharedAsyncSocketManager];
     MsgModel *msg = [[MsgModel alloc] init];
@@ -196,6 +200,8 @@
     
     __weak typeof(self) weakSelf = self;
     [socketManager sendData:msg receiveData:^(MsgModel *msg) {
+        
+        
         
         NSString *body = msg.msgBody;
         NSString *urlString = [NSString stringWithFormat:@"http://%@/tmp/%@",[SettingConfig shareInstance].ip_url,body];
@@ -251,7 +257,7 @@
                  self.relateVideoSwitch.on = [FORMATSTRING(VALUEFORKEY(weakSelf.cdrSystemCfg, @"photoWithVideo")) intValue] ?YES:NO;
                  
                  [self.tableView reloadData];
-                 
+                 [self removeActityLoading];
                  
                  } andFailed:^(NSError *error) {
                      

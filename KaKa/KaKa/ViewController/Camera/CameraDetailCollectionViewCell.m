@@ -53,7 +53,7 @@
         }
         else
         {
-            if ([fileName containsString:@"_pre"]||![fileName containsString:@"_"])
+            if ([fileName containsString:@"_pre"]||![fileName containsString:@"_"])//图片路径
             {
                 if ([fileName containsString:@"_pre"])
                 {
@@ -63,7 +63,7 @@
                 
                 file_Path = [Photo_Path(macAddress) stringByAppendingPathComponent:fileName];
             }
-            else
+            else//为视频路径
             {
                 
                 file_Path = [Video_Photo_Path(macAddress) stringByAppendingPathComponent:fileName];

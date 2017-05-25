@@ -131,10 +131,24 @@
     
     // 协议头标识
     NSString *hexHeadFlag = [self stringToHexStr:msg.headFlag];
-    
+    NSString *str = [self stringToHexStr:msg.msgBody];
+    NSString *hexMsgLength = [NSString stringWithFormat:@"%04lx", (long)(str.length/2)];
     // 协议头标识 + 命令ID + 消息号 + 协议版本号标识 + 令牌 + 数据体长度 + 数据体 + 从消息头开始，直到校验码前一个字节的CRC16-CCITT 校验码
 //    NSString * completeDataHex = [NSString stringWithFormat:@"%@%@", hexHeadFlag, msg.cmdId];
-    NSString * completeDataHex = [NSString stringWithFormat:@"%@%@%@%@%@%@0000", hexHeadFlag, msg.cmdId, msg.msgSN, msg.versionFlag, msg.token, @"0000"];
+    NSString *crc16DataHex = [NSString stringWithFormat:@"%@%@%@%@%@%@%@", hexHeadFlag, msg.cmdId, msg.msgSN, msg.versionFlag, msg.token, hexMsgLength,str];
+    NSData *crc16Data = [self hexStringToByte:crc16DataHex];
+    Byte *crc16Byte = (Byte *)[crc16Data bytes];
+    //获取校验码
+    unsigned short CRC16Code = [self get_crc16:crc16Byte length:(int)crc16Data.length];
+    
+    NSString *CRC16CodeStr = [self convertDecimalToHexStr:CRC16Code];
+    
+    // 转换成小写字母
+    CRC16CodeStr = [CRC16CodeStr lowercaseString];
+    
+    
+    
+    NSString * completeDataHex = [NSString stringWithFormat:@"%@%@", crc16DataHex, CRC16CodeStr];
     //转data
     NSData * sendData = [self hexStringToByte:completeDataHex];
     MMLog(@"发送的明文数据---------%@",sendData);
@@ -370,6 +384,86 @@
     freeifaddrs(interfaces);
     
     return address;
+}
+
+
+/**
+ 获取crc16校验码
+ 
+ @param buffer Byte数组
+ @param len 长度
+ @return short型校验码
+ */
+-(unsigned short)get_crc16:(unsigned char*)buffer length:(int)len {
+    unsigned short crc = 0x00;
+    unsigned short current = 0x00;
+    int i = 0,j;
+    unsigned char ch = 0x00;
+    for(i=0;i<len;i++)
+    {
+        ch = buffer[i];
+        current = (ch&0x000000FF) << 8;
+        for(j=0;j<8;j++)
+        {
+            if((crc ^ current)&0x8000){
+                crc = (crc << 1) ^ 0x1021;
+            }else{
+                crc <<=1;
+            }
+            crc &=0x0000FFFF;
+            current <<=1;
+        }
+    }
+    return crc;
+}
+
+
+/**
+ 将十进制整型转换成十六进制的字符串
+ 
+ @param decimal 十进制整型
+ @return 十六进制字符串
+ */
+- (NSString *)convertDecimalToHexStr:(unsigned short)decimal {
+    NSString *nLetterValue;
+    NSString *str =@"";
+    long long int ttmpig;
+    for (int i = 0; i<9; i++) {
+        ttmpig=decimal%16;
+        decimal=decimal/16;
+        switch (ttmpig)
+        {
+            case 10:
+                nLetterValue =@"A";break;
+            case 11:
+                nLetterValue =@"B";break;
+            case 12:
+                nLetterValue =@"C";break;
+            case 13:
+                nLetterValue =@"D";break;
+            case 14:
+                nLetterValue =@"E";break;
+            case 15:
+                nLetterValue =@"F";break;
+            default:nLetterValue=[[NSString alloc]initWithFormat:@"%lli",ttmpig];
+                
+        }
+        str = [nLetterValue stringByAppendingString:str];
+        if (decimal == 0) {
+            break;
+        }
+        
+    }
+    //当字符串少于4位时,要用补上,防止校验错误
+    if (str.length != 4) {
+        int zeroNum = 4 - (int)str.length;
+        while (zeroNum != 0) {
+            str = [NSString stringWithFormat:@"0%@",str];
+            zeroNum --;
+        }
+    }
+    
+    return str;
 }
 
 @end

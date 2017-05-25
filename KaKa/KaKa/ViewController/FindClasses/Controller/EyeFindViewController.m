@@ -69,7 +69,7 @@
         
         
         _tableView = tableView;
-        _titleArr = @[@"我的图片",@"我的视频",@"我的轨迹",@"我的游记",@"违章举报"];
+        _titleArr = @[@"我的图片",@"我的视频",@"我的轨迹",@"我的游记",@"违章曝光"];
         _imageArr = @[@"find_myPicure",@"find_myVideo",@"find_myTrack",@"find_myTravel",@"find_breakRules"];
 
     }

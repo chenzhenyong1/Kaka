@@ -174,10 +174,10 @@
     
     [UIApplication sharedApplication].idleTimerDisabled = NO;
     
-    if (self.videoPlayer.ffmpegPlayer) {
-        // 离开当前页面把直播暂停
-        [self.videoPlayer.ffmpegPlayer pause];
-    }
+//    if (self.videoPlayer.ffmpegPlayer) {
+//        // 离开当前页面把直播暂停
+//        [self.videoPlayer.ffmpegPlayer pause];
+//    }
 }
 
 - (void)viewDidLoad {
@@ -274,6 +274,9 @@
         [self.videoPlayer removeFromSuperview];
         self.videoPlayer = nil;
     }
+    
+//    [[AsyncSocketManager sharedAsyncSocketManager] disconnectSocket];
+    
     [self.navigationController popToRootViewControllerAnimated:YES];
 }
 
@@ -413,7 +416,8 @@
     if ([temp_str containsString:@"_"])
     {
         // 延时5秒后再去请求视频，不然会报参数错误
-        [self performSelector:@selector(sendReadViewCMDToCameraWithVideoString:) withObject:temp_str afterDelay:5];
+//        [self performSelector:@selector(sendReadViewCMDToCameraWithVideoString:) withObject:temp_str afterDelay:5];
+        [self sendReadViewCMDToCameraWithVideoString:temp_str];
     }
     
 }
@@ -1297,120 +1301,126 @@
             }
             MMLog(@"%@",body);
             
+            body = [NSString stringWithFormat:@"PHOTO/%@",[[body componentsSeparatedByString:@"/"]lastObject]];
             NSString *temp_str = [body componentsSeparatedByString:@"/"].lastObject;
             
             if (![temp_str containsString:@"_pre"])
             {
                 if ([temp_str containsString:@"_"])
                 {
+                    //视频缩略图
                     temp_str = [Video_Photo_Path(_model.macAddress) stringByAppendingPathComponent:temp_str];
+                    
                 }
                 else
                 {
+                    //图片大图
                     temp_str = [Photo_Path(_model.macAddress) stringByAppendingPathComponent:temp_str];
+                    
                 }
             }
         
-            if ([[NSFileManager defaultManager] fileExistsAtPath:temp_str])
+            if ([[NSFileManager defaultManager] fileExistsAtPath:temp_str])//已经下载的文件
             {
                 
-                if (_model.is_on_line)
+                if (_model.is_on_line)//在线
                 {
-                    AsyncSocketManager *socketManager = [AsyncSocketManager sharedAsyncSocketManager];
-                    MsgModel *requestMsg = [[MsgModel alloc] init];
-                    requestMsg.cmdId = @"0A";
-                    requestMsg.token = [SettingConfig shareInstance].deviceLoginToken;
-                    requestMsg.msgBody = body;
-                    [socketManager sendData:requestMsg receiveData:^(MsgModel *msg) {
-                        
-                        if ([msg.msgBody isEqualToString:@"OK"])
+                    BOOL isdeleteVideo = [self deleteDirInCache:temp_str];
+                    if (isdeleteVideo)
+                    {
+//                        [self addActityText:@"删除成功" deleyTime:1];
+                        MMLog(@"删除成功");
+                        //判断是否下载过
+                        NSString *fileName = [temp_str componentsSeparatedByString:@"/"].lastObject;
+                        if ([FMDBTools selectDownloadWithFile_name:fileName])
                         {
-                            [weakSelf addActityText:@"删除成功" deleyTime:1];
-                            
-                            if ([body containsString:@"_pre"])
+                            //修改数据的删除状态
+                            if ([FMDBTools updateDowloaddelWithFile_name:fileName])
                             {
-                                [weakSelf.xml_pre_Array removeObjectAtIndex:_indexPath.row];
-                                [weakSelf deleteWithbody:body tag:1];
-                            }
-                            else
-                            {
-                                
-                                NSString *temp_str = [body componentsSeparatedByString:@"/"].lastObject;
-                                [FMDBTools updateDowloaddelWithFile_name:temp_str];
-                                NSString *filePath;
-                                if ([temp_str containsString:@"_"])
+                                NSMutableArray *xml_temp_arr = [self.xml_pre_Array mutableCopy];
+                                if (self.xml_pre_Array.count)
                                 {
-                                    filePath = [Video_Photo_Path(_model.macAddress) stringByAppendingPathComponent:temp_str];
                                     
-                                }
-                                else
-                                {
-                                    filePath = [Photo_Path(_model.macAddress) stringByAppendingPathComponent:temp_str];
-                                }
-                                [weakSelf deleteDirInCache:filePath];
-                                [weakSelf.collectionDataSource removeObjectAtIndex:_indexPath.row];
-                                [weakSelf deleteWithbody:body tag:0];
-                            }
-                            
-                            BOOL isdeleteVideo = [self deleteDirInCache:temp_str];
-                            if (isdeleteVideo)
-                            {
-                                [self addActityText:@"删除成功" deleyTime:1];
-                                MMLog(@"删除成功");
-                                //判断是否下载过
-                                if ([FMDBTools selectDownloadWithFile_name:[temp_str componentsSeparatedByString:@"/"].lastObject])
-                                {
-                                    //修改数据的删除状态
-                                    if ([FMDBTools updateDowloaddelWithFile_name:[temp_str componentsSeparatedByString:@"/"].lastObject])
+                                    for (NSDictionary *dic in xml_temp_arr)
                                     {
-                                        NSMutableArray *xml_temp_arr = [self.xml_pre_Array mutableCopy];
-                                        if (self.xml_pre_Array.count)
+                                        NSString *temp_fileName = VALUEFORKEY(dic, @"fileName");
+                                        if ([temp_fileName containsString:fileName])
                                         {
-                                            
-                                            for (NSDictionary *dic in xml_temp_arr)
-                                            {
-                                                NSString *temp_fileName = VALUEFORKEY(dic, @"fileName");
-                                                if ([temp_fileName containsString:[temp_str componentsSeparatedByString:@"/"].lastObject])
-                                                {
-                                                    [self.xml_pre_Array removeObject:dic];
-                                                    break;
-                                                }
-                                            }
+                                            [self.xml_pre_Array removeObject:dic];
+                                            break;
                                         }
-                                        
-                                        if (self.collectionDataSource.count)
-                                        {
-                                            xml_temp_arr = [weakSelf.collectionDataSource mutableCopy];
-                                            for (NSDictionary *dic in xml_temp_arr)
-                                            {
-                                                NSString *temp_fileName = VALUEFORKEY(dic, @"fileName");
-                                                if ([temp_fileName containsString:[temp_str componentsSeparatedByString:@"/"].lastObject])
-                                                {
-                                                    [self.collectionDataSource removeObject:dic];
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                        [self.collectionView reloadData];
                                     }
                                 }
                                 
+                                if (self.collectionDataSource.count)
+                                {
+                                    xml_temp_arr = [weakSelf.collectionDataSource mutableCopy];
+                                    for (NSDictionary *dic in xml_temp_arr)
+                                    {
+                                        NSString *temp_fileName = VALUEFORKEY(dic, @"fileName");
+                                        if ([temp_fileName containsString:fileName])
+                                        {
+                                            [self.collectionDataSource removeObject:dic];
+                                            break;
+                                        }
+                                    }
+                                }
+                                [self.collectionView reloadData];
+                            }
+                        }
+                        
+                        AsyncSocketManager *socketManager = [AsyncSocketManager sharedAsyncSocketManager];
+                        MsgModel *requestMsg = [[MsgModel alloc] init];
+                        requestMsg.cmdId = @"0A";
+                        requestMsg.token = [SettingConfig shareInstance].deviceLoginToken;
+                        requestMsg.msgBody = body;
+                        [socketManager sendData:requestMsg receiveData:^(MsgModel *msg) {
+                            
+                            if ([msg.msgBody isEqualToString:@"OK"])
+                            {
+                                [weakSelf addActityText:@"删除成功" deleyTime:1];
+                                
+                                if ([body containsString:@"_pre"])
+                                {
+                                    [weakSelf.xml_pre_Array removeObjectAtIndex:_indexPath.row];
+                                    [weakSelf deleteWithbody:body tag:1];
+                                }
+                                else
+                                {
+                                    
+                                    NSString *temp_str = [body componentsSeparatedByString:@"/"].lastObject;
+                                    [FMDBTools updateDowloaddelWithFile_name:temp_str];
+                                    NSString *filePath;
+                                    if ([temp_str containsString:@"_"])
+                                    {
+                                        filePath = [Video_Photo_Path(_model.macAddress) stringByAppendingPathComponent:temp_str];
+                                        
+                                    }
+                                    else
+                                    {
+                                        filePath = [Photo_Path(_model.macAddress) stringByAppendingPathComponent:temp_str];
+                                    }
+                                    [weakSelf deleteDirInCache:filePath];
+//                                    [weakSelf.collectionDataSource removeObjectAtIndex:_indexPath.row];
+                                    [weakSelf deleteWithbody:body tag:0];
+                                }
                             }
                             else
                             {
-                                MMLog(@"删除失败");
+                                [weakSelf addActityText:@"删除失败" deleyTime:1];
                             }
-                        }
-                        else
-                        {
-                            [weakSelf addActityText:@"删除失败" deleyTime:1];
-                        }
+                            
+                        }];
                         
-                    }];
+                    }
+                    else
+                    {
+                        MMLog(@"删除失败");
+                    }
                 }
-                else
+                else//不在线
                 {
-                    //不在线
+                    
                     BOOL isdeleteVideo = [self deleteDirInCache:temp_str];
                     if (isdeleteVideo)
                     {
@@ -1462,7 +1472,7 @@
                 }
                 
             }
-            else
+            else//文件还没有下载的情况
             {
                 AsyncSocketManager *socketManager = [AsyncSocketManager sharedAsyncSocketManager];
                 MsgModel *requestMsg = [[MsgModel alloc] init];
@@ -1517,11 +1527,13 @@
     }
 }
 
+
+
 - (void)deleteWithbody:(NSString *)body tag:(int)tag
 {
     
     NSString *temp_body = [[NSString alloc] init];
-    if (tag)
+    if (tag)//self.collectionDataSource
     {
         if (![body containsString:@"_pre"])
         {
@@ -1543,7 +1555,7 @@
             [self deleteDirInCache:filePath];
             
         }
-        else
+        else//删除图片缩略图
         {
             body = [body componentsSeparatedByString:@"_pre"][0];
             body = [NSString stringWithFormat:@"%@.jpg",body];
@@ -1563,9 +1575,10 @@
                 
             }
             
+//            temp_body = [temp_body stringByReplacingOccurrencesOfString:@".jpg" withString:@"_pre.jpg"];
         }
     }
-    else
+    else//删除咔咔设备和手机 上视频和图片的缩略图 self.xml_pre_Array
     {
         if ([body containsString:@"_"])
         {
@@ -1624,6 +1637,7 @@
     requestMsg.msgBody = temp_body;
     [socketManager sendData:requestMsg receiveData:^(MsgModel *msg) {
         
+        
     }];
     
     [self.collectionView reloadData];
@@ -1667,7 +1681,7 @@
                 {
                     NSString *file_name = VALUEFORKEY((NSDictionary *)obj, @"fileName");
                     NSString *file_Path = [[NSString alloc] init];
-                    
+                    //查看文件名是否为已下载,如果没有下载就放到下载数组里等待下载
                     if (![[(NSDictionary *)obj allKeys] containsObject:@"local"]) {
                         
                         if ([file_name containsString:@"_pre"]||![file_name containsString:@"_"])
@@ -1681,7 +1695,7 @@
                         }
                         
                         
-                        //不存在就下载
+                        //不存在就放入下载数组下载
                         if (![[NSFileManager defaultManager] fileExistsAtPath:file_Path]) {
                             
                             [weakSelf.download_arr addObject:file_name];
@@ -1691,6 +1705,7 @@
                     
                 }
             }];
+            //数组去除重复数据
             self.download_arr = [[self setWithArray:self.download_arr] mutableCopy];
             if (self.download_arr.count !=0)
             {
@@ -1881,15 +1896,16 @@
         
         // 设置
         switch (sender.tag - 1) {
-            case 0:
+            case 0:// 设置
             {
                 if (!_model.is_on_line)
                 {
                     [self addActityText:@"未登录摄像头" deleyTime:1];
+                    return;
                 }
                 else
                 {
-                    // 设置
+                    
                     CameraSettingViewController *cameraSettingVC = [[CameraSettingViewController alloc] init];
                     cameraSettingVC.superVC = self;
                     __weak typeof(self) weakSelf = self;
@@ -1911,17 +1927,18 @@
                 }
             }
                 break;
-            case 1:
+            case 1:// 录音
             {
                 if (!_model.is_on_line)
                 {
                     [self addActityText:@"未登录摄像头" deleyTime:1];
+                    return;
                 }
                 else
                 {
                     sender.selected = !sender.isSelected;
                     
-                    // 录音
+                    
                     AsyncSocketManager *socketManager = [AsyncSocketManager sharedAsyncSocketManager];
                     MsgModel *msg = [[MsgModel alloc] init];
                     msg.cmdId = @"0E";
@@ -1948,15 +1965,16 @@
                 
             }
                 break;
-            case 2:
+            case 2:// 拍照
             {
                 if (!_model.is_on_line)
                 {
                     [self addActityText:@"未登录摄像头" deleyTime:1];
+                    return;
                 }
                 else
                 {
-                    // 拍照
+                    
                     AsyncSocketManager *socketManager = [AsyncSocketManager sharedAsyncSocketManager];
                     MsgModel *msg = [[MsgModel alloc] init];
                     msg.cmdId = @"07";
@@ -1983,7 +2001,7 @@
                 
             }
                 break;
-            case 3:
+            case 3://游记
             {
                 if (!_model.is_on_line)
                 {
@@ -2026,9 +2044,9 @@
                 
             }
                 break;
-            case 4:
+            case 4:// 全屏
             {
-                // 全屏
+                
                 if (!self.videoPlayer) {
                     [self addActityText:@"未登录摄像头" deleyTime:1];
                     return;
@@ -2154,7 +2172,7 @@
             break;
         case 2:
         {
-            // 地图
+            // 循环视频
             lineLeft = SCREEN_WIDTH / 3 * 2;
             //获取数据
             if (self.model.is_on_line)//是否在线
@@ -2427,9 +2445,9 @@
     
     if (collectionView.tag == MiddleCollectViewTag) {//下载文件
         
-        if (self.xml_pre_Array.count)
+        if (self.model.is_on_line)
         {
-            
+        
             if (self.xml_pre_Array.count == self.collectionDataSource.count)
             {
                 return self.collectionDataSource.count;
@@ -2565,6 +2583,15 @@
                 });
             }else//点击未下载的视频
             {
+                //手机存储小于500MB时
+                if (![self Reserved])
+                {
+                    [self addActityText:@"手机存储小于500MB,请清理手机存储空间" deleyTime:1.0];
+                    
+                    return;
+                }
+                
+                
                 for (NSString *waitFileName in self.downloadCycleVideoArray
                      ) {
                     if ([waitFileName isEqualToString:fileName]) {//过滤数组相同的文件名
@@ -2595,23 +2622,17 @@
                 }
             }
         }
-    }else{//下载文件
+    }
+    else{//下载文件
     
         _indexPath = indexPath;
-        if (_model.is_on_line)
+        if (_model.is_on_line)//在线
         {
-            if (!downloadSwitch.on)
+            if (!downloadSwitch.on)//没开自动下载
             {
                 if (self.xml_pre_Array.count)
                 {
-                    /**
-                     xml_pre_Array与self.collectionDataSource的区别
-                     xml_pre_Array用于存放后缀是_pre.jpg _10.jpg的数组
-                     self.collectionDataSource用于存放后缀是.jpg _10.jpg的数组
-                     
-                     如果xml_pre_Array.count 与 self.collectionDataSource.count相同 就使用self.collectionDataSource数组 就不用再去处理图片的名称
-                     如果不相同 使用xml_pre_Array 但是要处理图片后缀名称
-                     */
+                    
                     if (self.xml_pre_Array.count == self.collectionDataSource.count)
                     {
                         NSDictionary *dic = self.collectionDataSource[indexPath.row];
@@ -2633,7 +2654,7 @@
                     [self clickDownloadFileWithFileName:fileName];
                 }
             }
-            else
+            else//开启自动下载
             {
                 
                 NSDictionary *dic = [[NSDictionary alloc] init];
@@ -2659,6 +2680,7 @@
                 
                 NSString *fileName = VALUEFORKEY(dic, @"fileName");
                 NSString *temp_fileName ;
+                //获取图片名
                 if ([fileName containsString:@"/"])
                 {
                     temp_fileName = [fileName componentsSeparatedByString:@"/"].lastObject;
@@ -2667,13 +2689,16 @@
                 {
                     temp_fileName = fileName;
                 }
+                //下载图片缩略图或大图
                 if ([temp_fileName containsString:@"_pre"]||![temp_fileName containsString:@"_"])
                 {
                     
                     //判断是否下载过
                     if (![FMDBTools selectDownloadWithFile_name:temp_fileName])
                     {
+                        //点击下载图片
                         [self clickDownloadFileWithFileName:temp_fileName];
+                        
                     }
                     else
                     {
@@ -2706,7 +2731,7 @@
                         
                         if (![fileName hasSuffix:@".mp4"])
                         {
-                            [self addActityText:@"视频未下载完成,请稍后重试" deleyTime:1];
+                            [self addActityText:@"视频正在下载..." deleyTime:1.0];
                             return;
                         }
                         NSURL *sourceMovieURL = [NSURL fileURLWithPath:fileName];
@@ -2735,7 +2760,7 @@
             }
             
         }
-        else
+        else//不在线
         {
             
             
@@ -2806,9 +2831,9 @@
     NSMutableArray *albums_arr = [NSMutableArray array];
     LHPhotoBrowser *bc = [[LHPhotoBrowser alloc] init];
     NSString *fileName = name;
-    if ([fileName containsString:@"_pre"])
+    if ([fileName containsString:@"_pre"])//如果是图片缩略图
     {
-        fileName = [fileName componentsSeparatedByString:@"_pre"][0];
+        fileName = [fileName componentsSeparatedByString:@"_pre"][0];//获取图片名
         for (int i = 0; i < pathArr.count; i ++)
         {
             NSString *path = pathArr[i];
@@ -3111,6 +3136,7 @@
 //获取设置信息
 - (void)getDeviceConfig {
     
+    [self addActityLoading:nil subTitle:nil];
     // 获取设置信息
     AsyncSocketManager *socketManager = [AsyncSocketManager sharedAsyncSocketManager];
     MsgModel *requestMsg = [[MsgModel alloc] init];
@@ -3120,6 +3146,8 @@
     __weak typeof(self) weakSelf = self;
     // 先查询设备参数列表，设备参数列表里面有实时视频地址
     [socketManager sendData:requestMsg receiveData:^(MsgModel *msg) {
+        
+        
         // 获取摄像机封面
         [weakSelf getCoverImage];
         // 请求 xml文件
@@ -3161,6 +3189,7 @@
             
             [weakSelf initVideoView];
             
+            [self removeActityLoading];
             
             NSString *version = FORMATSTRING(VALUEFORKEY(VALUEFORKEY(VALUEFORKEY(dic, @"cdrSystemCfg"), @"cdrSystemInfomation"), @"cdrSoftwareVersion"));
             version = [version substringFromIndex:3];
@@ -3430,13 +3459,14 @@
                             }
                         }
                         
-                        if ([str containsString:@"_"])
+                        if ([str containsString:@"_"])//图片缩略图或者视频缩略图的情况
                         {
-                            if ([str containsString:@"_pre"])
+                            if ([str containsString:@"_pre"])//图片缩略图
                             {
+                                
                                 str = [str componentsSeparatedByString:@"_pre"][0];
                                 str = [NSString stringWithFormat:@"%@.jpg",str];
-                                //判断是否存在
+                                //判断该大图的缩略图是否存在
                                 if ([FMDBTools selectDownloadWithFile_name:str])
                                 {
                                     //是否被删除
@@ -3445,12 +3475,12 @@
 //                                        [xml_pre_Array addObject:dic];
                                     }
                                 }
-                                else
+                                else//不存在就放入xml_pre_Array数组
                                 {
                                     [weakSelf.xml_pre_Array addObject:dic];
                                 }
                             }
-                            else
+                            else//视频缩略图
                             {
                                 //判断是否存在
                                 if ([FMDBTools selectDownloadWithFile_name:str])
@@ -3461,20 +3491,17 @@
 //                                        [xml_pre_Array addObject:dic];
                                     }
                                 }
-                                else
+                                else//不存在就放入xml_pre_Array数组
                                 {
                                     [weakSelf.xml_pre_Array addObject:dic];
                                 }
                             }
                         }
                         
-                        
-                        
-                        
                     }
                 }
             }
-            else
+            else//返回不是数组,单个文件的情况
             {
                 NSString *str = FORMATSTRING(VALUEFORKEY(VALUEFORKEY(cdJpg, @"jpg"), @"fileName"));
                 
@@ -3543,7 +3570,7 @@
              如果xml_pre_Array.count 与 self.collectionDataSource.count相同 就使用self.collectionDataSource数组 就不用再去处理图片的名称
              如果不相同 使用xml_pre_Array 但是要处理图片后缀名称
              */
-            
+//            [weakSelf newArray:weakSelf.xml_pre_Array isPhoto:isPhoto isVideo:isVideo];
             if (weakSelf.xml_pre_Array.count == weakSelf.collectionDataSource.count)
             {
                 [weakSelf newArray:weakSelf.collectionDataSource isPhoto:isPhoto isVideo:isVideo];
@@ -3582,7 +3609,8 @@
         [self.collectionDataSource removeAllObjects];
         
         [self.collectionDataSource addObjectsFromArray:sortedArray];
-        NSMutableArray *pathArr =[MyTools getAllDataWithPath:Photo_Path(self.model.macAddress) mac_adr:self.model.macAddress];
+        NSMutableArray *pathArr;
+        pathArr =[MyTools getAllDataWithPath:Photo_Path(self.model.macAddress) mac_adr:self.model.macAddress];
         if (pathArr.count)
         {
             //添加本地数据
@@ -3604,8 +3632,6 @@
             
             pathArr = [MyTools getAllDataWithPath:Video_Photo_Path(self.model.macAddress) mac_adr:self.model.macAddress];
             
-            
-            
             if (pathArr.count)
             {
                 for (int i = 0; i < pathArr.count; i ++)
@@ -3619,6 +3645,9 @@
                 }
             }
         }
+        
+        
+        
         if (self.collectionDataSource)
         {
             
@@ -3688,7 +3717,8 @@
         [self.xml_pre_Array removeAllObjects];
         
         [self.xml_pre_Array addObjectsFromArray:sortedArray];
-        NSArray *pathArr =[MyTools getAllDataWithPath:Photo_Path(self.model.macAddress) mac_adr:self.model.macAddress];
+        NSArray *pathArr;
+        pathArr =[MyTools getAllDataWithPath:Photo_Path(self.model.macAddress) mac_adr:self.model.macAddress];
         if (pathArr.count)
         {
             for (int i = 0; i < pathArr.count; i ++)
@@ -3705,20 +3735,23 @@
                 }
             }
             
-            pathArr = [MyTools getAllDataWithPath:Video_Photo_Path(self.model.macAddress) mac_adr:self.model.macAddress];
-            if (pathArr.count)
+           
+        }
+        
+        pathArr = [MyTools getAllDataWithPath:Video_Photo_Path(self.model.macAddress) mac_adr:self.model.macAddress];
+        if (pathArr.count)
+        {
+            for (int i = 0; i < pathArr.count; i ++)
             {
-                for (int i = 0; i < pathArr.count; i ++)
-                {
-                    NSString *filePath = [pathArr objectAtIndex:i];
-                    NSMutableDictionary *dic = [[NSMutableDictionary alloc] init];
-                    [dic setValue:filePath forKey:@"fileName"];
-                    [dic setValue:@"local" forKey:@"local"];
-                    [self.xml_pre_Array addObject:dic];
-                    [self.collectionDataSource addObject:dic];
-                }
+                NSString *filePath = [pathArr objectAtIndex:i];
+                NSMutableDictionary *dic = [[NSMutableDictionary alloc] init];
+                [dic setValue:filePath forKey:@"fileName"];
+                [dic setValue:@"local" forKey:@"local"];
+                [self.xml_pre_Array addObject:dic];
+                [self.collectionDataSource addObject:dic];
             }
         }
+        
         if (self.xml_pre_Array.count)
         {
             NSArray *sortedArray = [arr sortedArrayUsingComparator:^NSComparisonResult(NSDictionary *obj1, NSDictionary *obj2) {
@@ -3824,12 +3857,14 @@
                 {
                     
                     file_Path = [Video_Photo_Path(weakSelf.model.macAddress) stringByAppendingPathComponent:file_name];
+                    
                 }
                 //不存在就下载
                 if (![[NSFileManager defaultManager] fileExistsAtPath:file_Path]) {
                     
                     [weakSelf.download_arr addObject:file_name];
                 }
+                
             }
         }
     }];
@@ -3997,7 +4032,7 @@
      */
 }
 
-
+#pragma mark ************** 自动下载图片和视频 **************
 
 - (void)downloadWithURLTag:(int)tag
 {
@@ -4009,6 +4044,7 @@
     
     if (![self Reserved])
     {
+        [self addActityText:@"手机存储小于500MB,请清理手机存储空间" deleyTime:1.0];
         return;
     }
     
@@ -4041,7 +4077,7 @@
     else
     {
         
-        //判断是否下载过
+        //判断是否下载过,下载过的就跳过,下载下一个
         if ([FMDBTools selectDownloadWithFile_name:FORMATSTRING(self.download_arr[tag])])
         {
             [self downloadWithURLTag:tag+1];
@@ -4049,7 +4085,7 @@
         }
         NSString *str = FORMATSTRING(self.download_arr[tag]);
         
-        if (![str hasSuffix:@".jpg"])
+        if (![str hasSuffix:@".jpg"])//如果不是以.jpg结尾就过滤,跳过下载下一个
         {
             [self downloadWithURLTag:finish_download_tag+1];
         }
@@ -4060,7 +4096,7 @@
             documentsDirectoryURL = [documentsDirectoryURL URLByAppendingPathComponent:self.model.macAddress];
             
             
-            if ([str containsString:@"_"])
+            if ([str containsString:@"_"])//如果是视频缩略图
             {
                 documentsDirectoryURL = [documentsDirectoryURL URLByAppendingPathComponent:@"Video/Photo"];
             }
@@ -4082,6 +4118,7 @@
             NSString *url_str =FORMATSTRING(self.download_arr[tag]);
             
             url_str = [NSString stringWithFormat:@"http://%@/PHOTO/%@", [SettingConfig shareInstance].ip_url, url_str];
+            //下载相关图片
             [RequestManager downloadWithURL:url_str savePathURL:documentsDirectoryURL progress:^(NSProgress *progress)
              {
                  
@@ -4135,22 +4172,95 @@
                  
                  NSArray *temp = [FORMATSTRING(weakSelf.download_arr[tag]) componentsSeparatedByString:@"."];
                  __block NSString *temp_str = temp[0];
+                 //如果是视频缩略图,则要继续下载视频
+                
                  if ([temp_str containsString:@"_"])
                  {
+                     
                      AsyncSocketManager *socketManager = [AsyncSocketManager sharedAsyncSocketManager];
                      MsgModel *msg = [[MsgModel alloc] init];
                      msg.cmdId = @"06";
                      msg.token = [SettingConfig shareInstance].deviceLoginToken;
                      
                      msg.msgBody =temp_str;
-                     [socketManager sendData:msg receiveData:^(MsgModel *msg) {
+                     
+                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                          
-                         if ([msg.msgBody hasSuffix:@".mp4"])
-                         {
-                             if (!downloadSwitch.on)
+                         [socketManager sendData:msg receiveData:^(MsgModel *msg) {
+                             
+                             if ([msg.msgBody hasSuffix:@".mp4"])//去下载视频
                              {
-                                 NSArray *pathArr;
-                                 pathArr = [MyTools getAllDataWithPath:Video_Photo_Path(self.model.macAddress) mac_adr:self.model.macAddress];
+                                 if (!downloadSwitch.on)//如果关闭自动下载开关就删除视频缩略图
+                                 {
+                                     NSArray *pathArr;
+                                     pathArr = [MyTools getAllDataWithPath:Video_Photo_Path(self.model.macAddress) mac_adr:self.model.macAddress];
+                                     for (NSString *str in pathArr)
+                                     {
+                                         
+                                         if ([str containsString:temp_str])
+                                         {
+                                             temp_str = str;
+                                             break;
+                                         }
+                                     }
+                                     BOOL isdeleteVideo = [self deleteDirInCache:temp_str];
+                                     if (isdeleteVideo)
+                                     {
+                                         MMLog(@"删除成功");
+                                         
+                                         if (self.download_arr.count) {
+                                             
+                                             if ([FMDBTools selectDownloadWithFile_name:FORMATSTRING(self.download_arr[tag])])
+                                             {
+                                                 if ([FMDBTools updateDowloaddelWithFile_name:FORMATSTRING(self.download_arr[tag])])
+                                                 {
+                                                     MMLog(@"修改成功！");
+                                                     
+                                                     NSMutableArray *xml_temp_arr = [self.xml_pre_Array mutableCopy];
+                                                     for (NSDictionary *dic in xml_temp_arr)
+                                                     {
+                                                         NSString *temp_fileName = VALUEFORKEY(dic, @"fileName");
+                                                         if ([temp_fileName isEqualToString:FORMATSTRING(self.download_arr[tag])])
+                                                         {
+                                                             [self.xml_pre_Array removeObject:dic];
+                                                             break;
+                                                         }
+                                                     }
+                                                     
+                                                     xml_temp_arr = [self.collectionDataSource mutableCopy];
+                                                     for (NSDictionary *dic in xml_temp_arr)
+                                                     {
+                                                         NSString *temp_fileName = VALUEFORKEY(dic, @"fileName");
+                                                         if ([temp_fileName isEqualToString:FORMATSTRING(self.download_arr[tag])])
+                                                         {
+                                                             [self.collectionDataSource removeObject:dic];
+                                                             break;
+                                                         }
+                                                     }
+                                                     [self.collectionView reloadData];
+                                                 }
+                                             }
+                                         }
+                                         
+                                         
+                                     }
+                                     else
+                                     {
+                                         MMLog(@"删除失败");
+                                     }
+                                     [weakSelf downloadWithURLTag:tag];
+                                 }
+                                 else
+                                 {
+                                     
+                                     [weakSelf downloadVideoWithName:msg.msgBody tag:finish_download_tag];
+                                 }
+                                 
+                             }
+                             else//返回错误信息,删除改视频缩略图
+                             {
+                                 NSArray *pathArr =[MyTools getAllDataWithPath:Video_Photo_Path(weakSelf.model.macAddress) mac_adr:weakSelf.model.macAddress];
+                                 
                                  for (NSString *str in pathArr)
                                  {
                                      
@@ -4160,80 +4270,13 @@
                                          break;
                                      }
                                  }
-                                 BOOL isdeleteVideo = [self deleteDirInCache:temp_str];
+                                 BOOL isdeleteVideo = [weakSelf deleteDirInCache:temp_str];
+                                 
                                  if (isdeleteVideo)
                                  {
                                      MMLog(@"删除成功");
-                                     
-                                     if (self.download_arr.count) {
-                                         
-                                         if ([FMDBTools selectDownloadWithFile_name:FORMATSTRING(self.download_arr[tag])])
-                                         {
-                                             if ([FMDBTools updateDowloaddelWithFile_name:FORMATSTRING(self.download_arr[tag])])
-                                             {
-                                                 MMLog(@"修改成功！");
-                                                 
-                                                 NSMutableArray *xml_temp_arr = [self.xml_pre_Array mutableCopy];
-                                                 for (NSDictionary *dic in xml_temp_arr)
-                                                 {
-                                                     NSString *temp_fileName = VALUEFORKEY(dic, @"fileName");
-                                                     if ([temp_fileName isEqualToString:FORMATSTRING(self.download_arr[tag])])
-                                                     {
-                                                         [self.xml_pre_Array removeObject:dic];
-                                                         break;
-                                                     }
-                                                 }
-                                                 
-                                                 xml_temp_arr = [self.collectionDataSource mutableCopy];
-                                                 for (NSDictionary *dic in xml_temp_arr)
-                                                 {
-                                                     NSString *temp_fileName = VALUEFORKEY(dic, @"fileName");
-                                                     if ([temp_fileName isEqualToString:FORMATSTRING(self.download_arr[tag])])
-                                                     {
-                                                         [self.collectionDataSource removeObject:dic];
-                                                         break;
-                                                     }
-                                                 }
-                                                 [self.collectionView reloadData];
-                                             }
-                                         }
-                                     }
-                                     
-                                     
-                                 }
-                                 else
-                                 {
-                                     MMLog(@"删除失败");
-                                 }
-                                 [weakSelf downloadWithURLTag:tag];
-                             }
-                             else
-                             {
-                                 
-                                 [weakSelf downloadVideoWithName:msg.msgBody tag:finish_download_tag];
-                             }
-                             
-                         }
-                         else
-                         {
-                             NSArray *pathArr =[MyTools getAllDataWithPath:Video_Photo_Path(weakSelf.model.macAddress) mac_adr:weakSelf.model.macAddress];
-                             
-                             for (NSString *str in pathArr)
-                             {
-                                 
-                                 if ([str containsString:temp_str])
-                                 {
-                                     temp_str = str;
-                                     break;
-                                 }
-                             }
-                             BOOL isdeleteVideo = [weakSelf deleteDirInCache:temp_str];
-                             
-                             if (isdeleteVideo)
-                             {
-                                 MMLog(@"删除成功");
-                                 if (weakSelf.download_arr.count)
-                                 {
+                                     if (weakSelf.download_arr.count)
+                                     {
                                          if ([FMDBTools selectDownloadWithFile_name:FORMATSTRING(weakSelf.download_arr[tag])])
                                          {
                                              if ([FMDBTools updateDowloaddelWithFile_name:FORMATSTRING(weakSelf.download_arr[tag])])
@@ -4264,23 +4307,27 @@
                                                  [weakSelf.collectionView reloadData];
                                              }
                                          }
+                                     }
+                                     
+                                 }
+                                 else
+                                 {
+                                     MMLog(@"删除失败");
                                  }
                                  
-                            }
-                             else
-                             {
-                                 MMLog(@"删除失败");
-                             }
+                                 [weakSelf downloadWithURLTag:finish_download_tag];
+                             };
+                             //                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                             //                         
+                             //                         
+                             //                         }];
+                             //                     });
                              
-                             [weakSelf downloadWithURLTag:finish_download_tag];
-                         }
-                         
-                         
-                     }];
-                     
-                     
-                 }
-                 else
+                             
+                         }];
+                     });
+                }
+                 else//如果是图片就下载下一个
                  {
                      
                      [weakSelf downloadWithURLTag:finish_download_tag];
@@ -4327,7 +4374,7 @@
                              }
                          }
                      }
-                     }
+                 }
                      MMLog(@"删除成功");
                     
                  NSMutableArray *xml_temp_arr = [self.xml_pre_Array mutableCopy];
@@ -4378,6 +4425,7 @@
     //手机存储小于500MB时
     if (![self Reserved])
     {
+        [self addActityText:@"手机存储小于500MB,请清理手机存储空间" deleyTime:1.0];
         return;
     }
     NSString *file_Path = [[NSString alloc] init];
@@ -4402,7 +4450,7 @@
         
         __weak typeof(self) weakSelf = self;
         [RequestManager downloadWithURL:[NSString stringWithFormat:@"http://%@/tmp/%@", [SettingConfig shareInstance].ip_url,fileName] savePathURL:documentsDirectoryURL progress:^(NSProgress *progress) {
-            
+            ZYLog(@"*********************视频在下载,progress = %zd",progress.completedUnitCount);
         }
         succeed:^(id responseObject)
          {
@@ -4530,7 +4578,7 @@
 
 
 
-#pragma mark ----------------------下载视频 ----------------------------
+#pragma mark ----------------------自动下载视频 ----------------------------
 //下载视频
 - (void)downloadVideoWithName:(NSString *)name tag:(int)tag
 {
@@ -4543,6 +4591,7 @@
     //手机存储小于500MB时
     if (![self Reserved])
     {
+        [self addActityText:@"手机存储小于500MB,请清理手机存储空间" deleyTime:1.0];
         return;
     }
     
@@ -4576,7 +4625,7 @@
         
         __weak typeof(self) weakSelf = self;
        [RequestManager downloadWithURL:[NSString stringWithFormat:@"http://%@/tmp/%@", [SettingConfig shareInstance].ip_url,name] savePathURL:documentsDirectoryURL progress:^(NSProgress *progress) {
-            
+           ZYLog(@"自动下载视频 ******%zd",progress.completedUnitCount);
         }
         succeed:^(id responseObject)
         {
@@ -4699,7 +4748,7 @@
                         }
                     }
                     [weakSelf downloadWithURLTag:tag];
-                      [weakSelf.collectionView reloadData];
+                    [weakSelf.collectionView reloadData];
                 }
             }
           
@@ -4795,6 +4844,7 @@
     //手机存储小于500MB时
     if (![self Reserved])
     {
+        [self addActityText:@"手机存储小于500MB,请清理手机存储空间" deleyTime:1.0];
         return;
     }
     [self addActityLoading:@"正在加载内容" subTitle:nil];
@@ -4808,11 +4858,11 @@
     {
         if ([fileName containsString:@"_pre"]||![fileName containsString:@"_"])
         {
-            file_Path = [Photo_Path(_model.macAddress) stringByAppendingPathComponent:fileName];
+            file_Path = [Photo_Path(_model.macAddress) stringByAppendingPathComponent:fileName];//图片路径
         }
         else
         {
-            
+            //视频缩略图路径
             file_Path = [Video_Photo_Path(_model.macAddress) stringByAppendingPathComponent:fileName];
         }
     }
@@ -4840,15 +4890,14 @@
         {
             [[NSFileManager defaultManager] createDirectoryAtURL:documentsDirectoryURL withIntermediateDirectories:YES attributes:nil error:nil];
         }
-        else
-        {
-            NSLog(@"文件夹已存在");
-        }
         
-        if ([fileName containsString:@"_pre"])
+        
+        if ([fileName containsString:@"_pre"])//如果是图片缩略图
         {
             fileName = [NSString stringWithFormat:@"%@.jpg",[fileName componentsSeparatedByString:@"_pre"][0]];
         }
+        
+        //下载图片
         __weak typeof(self) weakSelf = self;
         NSString *url_str = [NSString stringWithFormat:@"http://%@/PHOTO/%@", [SettingConfig shareInstance].ip_url, fileName];
         [RequestManager downloadWithURL:url_str savePathURL:documentsDirectoryURL progress:^(NSProgress *progress)
@@ -4864,7 +4913,7 @@
                      MMLog(@"保存成功！");
                  }
              }
-             if ([fileName containsString:@"_"])
+             if ([fileName containsString:@"_"])//如果是视频缩略图,下载完图片还要继续下载视频
              {
                  AsyncSocketManager *socketManager = [AsyncSocketManager sharedAsyncSocketManager];
                  MsgModel *msg = [[MsgModel alloc] init];
@@ -4872,49 +4921,70 @@
                  msg.token = [SettingConfig shareInstance].deviceLoginToken;
                  
                  msg.msgBody =[fileName componentsSeparatedByString:@"."][0];
-                 [socketManager sendData:msg receiveData:^(MsgModel *msg) {
+                 ZYLog(@"msg.msgBody = %@",msg.msgBody);
+                 
+                 //延迟2秒请求,防止没有返回数据
+                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                      
-                     if ([msg.msgBody hasSuffix:@".mp4"])
-                     {
+                     [socketManager sendData:msg receiveData:^(MsgModel *msg) {
                          
-                         [weakSelf clickDownloadVideoWithFileName:msg.msgBody];
-                     }
-                     else
-                     {
-                         NSString *temp_str = fileName;
-                         NSArray *pathArr =[MyTools getAllDataWithPath:Video_Photo_Path(weakSelf.model.macAddress) mac_adr:weakSelf.model.macAddress];
-
-                         for (NSString *str in pathArr)
+                         if ([msg.msgBody hasSuffix:@".mp4"])
                          {
                              
-                             if ([str containsString:temp_str])
-                             {
-                                 temp_str = str;
-                                 break;
-                             }
+                             [weakSelf clickDownloadVideoWithFileName:msg.msgBody];
                          }
-                         BOOL isdeleteVideo = [weakSelf deleteDirInCache:temp_str];
-                         
-                         if (isdeleteVideo)
+                         else
                          {
-                             MMLog(@"删除成功");
-                             if ([FMDBTools selectDownloadWithFile_name:fileName])
-                             {
-                                 if ([FMDBTools updateDowloaddelWithFile_name:fileName])
+                             NSString *body = [NSString stringWithFormat:@"PHOTO/%@",fileName];
+                             AsyncSocketManager *socketManager = [AsyncSocketManager sharedAsyncSocketManager];
+                             MsgModel *requestMsg = [[MsgModel alloc] init];
+                             requestMsg.cmdId = @"0A";
+                             requestMsg.token = [SettingConfig shareInstance].deviceLoginToken;
+                             requestMsg.msgBody = body;
+                             [socketManager sendData:requestMsg receiveData:^(MsgModel *msg) {
+                                 
+                                 if ([msg.msgBody isEqualToString:@"OK"])
                                  {
-                                     MMLog(@"修改成功！");
+                                     [weakSelf addActityText:@"视频正在创建,在下个视频获取!!" deleyTime:1];
+                                     
+                                     if ([body containsString:@"_pre"])
+                                     {
+                                         [weakSelf.xml_pre_Array removeObjectAtIndex:_indexPath.row];
+                                         [weakSelf deleteWithbody:body tag:1];
+                                     }
+                                     else
+                                     {
+                                         
+                                         NSString *temp_str = [body componentsSeparatedByString:@"/"].lastObject;
+                                         [FMDBTools updateDowloaddelWithFile_name:temp_str];
+                                         NSString *filePath;
+                                         if ([temp_str containsString:@"_"])
+                                         {
+                                             filePath = [Video_Photo_Path(_model.macAddress) stringByAppendingPathComponent:temp_str];
+                                             
+                                         }
+                                         else
+                                         {
+                                             filePath = [Photo_Path(_model.macAddress) stringByAppendingPathComponent:temp_str];
+                                         }
+                                         [weakSelf deleteDirInCache:filePath];
+                                         [weakSelf.collectionDataSource removeObjectAtIndex:_indexPath.row];
+                                         [weakSelf deleteWithbody:body tag:0];
+                                     }
                                  }
-                             }
+                                 else
+                                 {
+                                     [weakSelf addActityText:@"删除失败" deleyTime:1];
+                                 }
+                                 
+                             }];
                          }
                          
-                         [weakSelf removeActityLoading];
-                         [weakSelf addActityText:msg.msgBody deleyTime:1];
-                     }
-                     
-                     
-                 }];
+                         
+                     }];
+                 });
              }
-             else
+             else//如果是图片就跳到图片浏览控制器
              {
                 
                  [weakSelf removeActityLoading];
@@ -5044,6 +5114,7 @@
         }
         else
         {
+            
             fileName = [fileName componentsSeparatedByString:@"_"][0];
             fileName = [fileName componentsSeparatedByString:@"/"].lastObject;
             NSArray *pathArr =[MyTools getAllDataWithPath:Video_Path(_model.macAddress) mac_adr:_model.macAddress];
@@ -5054,28 +5125,39 @@
                 if ([str containsString:fileName])
                 {
                     fileName = str;
+                    NSURL *sourceMovieURL = [NSURL fileURLWithPath:fileName];
+                    MoviePlayerViewController *playVC = [[MoviePlayerViewController alloc] init];
+                    playVC.videoURL = sourceMovieURL;
+                    
+                    if ([FORMATSTRING(VALUEFORKEY(dic, @"fileName")) containsString:@"/"])
+                    {
+                        playVC.imageURL = FORMATSTRING(VALUEFORKEY(dic, @"fileName"));
+                    }
+                    else
+                    {
+                        playVC.imageURL = [Video_Photo_Path(_model.macAddress) stringByAppendingPathComponent:VALUEFORKEY(dic, @"fileName")];;
+                    }
+                    
+                    __weak typeof(self) weakSelf = self;
+                    playVC.block =^{
+                        
+                        [weakSelf getCacheData];
+                    };
+                    [self.navigationController pushViewController:playVC animated:YES];
                     break;
                 }
-            }
-            NSURL *sourceMovieURL = [NSURL fileURLWithPath:fileName];
-            MoviePlayerViewController *playVC = [[MoviePlayerViewController alloc] init];
-            playVC.videoURL = sourceMovieURL;
-            
-            if ([FORMATSTRING(VALUEFORKEY(dic, @"fileName")) containsString:@"/"])
-            {
-                playVC.imageURL = FORMATSTRING(VALUEFORKEY(dic, @"fileName"));
-            }
-            else
-            {
-                playVC.imageURL = [Video_Photo_Path(_model.macAddress) stringByAppendingPathComponent:VALUEFORKEY(dic, @"fileName")];;
-            }
-            
-            __weak typeof(self) weakSelf = self;
-            playVC.block =^{
                 
-                [weakSelf getCacheData];
-            };
-            [self.navigationController pushViewController:playVC animated:YES];
+            }
+            if (![fileName hasSuffix:@".mp4"]) {//会出现没有下载完成的情况,需重新下载
+                fileName = VALUEFORKEY(dic, @"fileName");
+                BOOL isdeleteVideo = [self deleteDirInCache:fileName];
+                if (isdeleteVideo) {
+                    fileName = [fileName componentsSeparatedByString:@"/"].lastObject;
+                    [self clickDownloadFileWithFileName:fileName];
+                }
+            }
+            
+            
         }
     }
     
@@ -5738,13 +5820,17 @@
                     }
                     
                 }else{//循环视频多个的时候返回的是数组
-                
+                    
                     for (NSDictionary *dic in mp4Array) {
                         if ([[dic allKeys] containsObject:@"fileName"]) {//有时候只有index并没有fileName,这时候无视频
                             
                             [self.cycleVideoArray addObject:dic];
                         }
                     }
+                    //整合排列顺序
+                    NSArray *sortArray = [self sortArray:self.cycleVideoArray];
+                    [self.cycleVideoArray removeAllObjects];
+                    [self.cycleVideoArray addObjectsFromArray:sortArray];
                 }
                 
                 
@@ -5756,6 +5842,18 @@
             ZYLog(@"error = %@",error);
         }];
     }];
+}
+//整合排列顺序,把最新的排到最前面
+- (NSArray *)sortArray:(NSArray *)array
+{
+    NSArray *sortedArray = [array sortedArrayUsingComparator:^NSComparisonResult(NSDictionary *obj1, NSDictionary *obj2) {
+        
+        //这里的代码可以参照上面compare:默认的排序方法，也可以把自定义的方法写在这里，给对象排序
+        //NSComparisonResult result = [obj1 compareFile:obj2];
+        NSComparisonResult result = [[NSNumber numberWithInt:[VALUEFORKEY(obj2, @"index") intValue]] compare:[NSNumber numberWithInt:[VALUEFORKEY(obj1, @"index") intValue]]];
+        return result;
+    }];
+    return sortedArray;
 }
 
 #pragma mark ---------------- 下载循环视频 --------------------------
@@ -5842,6 +5940,9 @@
 #pragma mark ---------------- 下载循环视频 --------------------------
 - (void)downloadCycleVideo:(UICollectionView *)collectionView cell: (CameraDetailCycleVideoCollectionViewCell *)cell indexPath:(NSIndexPath *)indexPath
 {
+    
+    
+    
     NSDictionary *dic = self.cycleVideoArray[indexPath.row];
     NSString *fileName = VALUEFORKEY(dic, @"fileName");
     

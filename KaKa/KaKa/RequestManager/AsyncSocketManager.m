@@ -165,7 +165,11 @@
         [self.blockDic setObject:[resultMsg copy] forKey:[msg.cmdId lowercaseString]];
         
         NSData * data = [self buildMessageDataWithModel:msg];
-        [self.asyncSocket writeData:data withTimeout:-1 tag:0];
+        
+//        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        
+            [self.asyncSocket writeData:data withTimeout:-1 tag:0];
+//        });
         
         _sendDataTimer = [NSTimer scheduledTimerWithTimeInterval:40.0f target:self selector:@selector(sendData_time_out) userInfo:nil repeats:NO];
         [[NSRunLoop mainRunLoop] addTimer:_sendDataTimer forMode:NSRunLoopCommonModes];
@@ -260,7 +264,8 @@
     
     // 待验证的crc16验证码
     NSString *needCheckCRC16CodeStr = [readStr substringFromIndex:readStr.length - 4];
-    unsigned long long needCheckCRC16Code = [self hexStringToDecimal:needCheckCRC16CodeStr];
+    
+    unsigned short needCheckCRC16Code = [self hexStringToDecimal:needCheckCRC16CodeStr];
     
     // 计算crc16验证码
     Byte *bytes = (Byte *)[data bytes];
@@ -313,7 +318,7 @@
     } else if([model.cmdId isEqualToString:@"02"]) {
         // 心跳
         MMLog(@"heard jump %@", model.msgBody);
-    }
+    } 
     
 }
 
@@ -393,8 +398,11 @@
     NSString *crc16DataHex = [NSString stringWithFormat:@"%@%@%@%@%@%@%@", hexHeadFlag, msg.cmdId, msg.msgSN, msg.versionFlag, msg.token, hexMsgLength,str];
     NSData *crc16Data = [self hexStringToByte:crc16DataHex];
     Byte *crc16Byte = (Byte *)[crc16Data bytes];
-    unsigned short CRC16Code = [self get_crc16:crc16Byte length:crc16Data.length];
+    //获取校验码
+    unsigned short CRC16Code = [self get_crc16:crc16Byte length:(int)crc16Data.length];
+    
     NSString *CRC16CodeStr = [self convertDecimalToHexStr:CRC16Code];
+    
     // 转换成小写字母
     CRC16CodeStr = [CRC16CodeStr lowercaseString];
     
@@ -593,6 +601,15 @@
         }
         
     }
+    //当字符串少于4位时,要用补上,防止校验错误
+    if (str.length != 4) {
+        int zeroNum = 4 - (int)str.length;
+        while (zeroNum != 0) {
+            str = [NSString stringWithFormat:@"0%@",str];
+            zeroNum --;
+        }
+    }
+    
     return str;
 }
 
@@ -604,7 +621,7 @@
  @param len 长度
  @return short型校验码
  */
--(unsigned short)get_crc16:(unsigned char*)buffer length:(unsigned long)len {
+-(unsigned short)get_crc16:(unsigned char*)buffer length:(int)len {
     unsigned short crc = 0x00;
     unsigned short current = 0x00;
     int i = 0,j;

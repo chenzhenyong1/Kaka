@@ -44,7 +44,8 @@
         
         MeParentModel *show = [MeSwitchItemModel itemWithTitle:@"仪表盘显示" titleImage:nil detail:nil];
         MeGroupModel *group2 = [[MeGroupModel alloc] init];
-        group2.items = @[download,show];
+//        group2.items = @[download,show];
+        group2.items = @[download];
         
         [_dataSource addObject:group0];
         [_dataSource addObject:group1];
@@ -87,7 +88,7 @@
 {
     MeGroupModel *group = self.dataSource[section];
     
-    return group.items.count;
+    return group.items.count ;
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView

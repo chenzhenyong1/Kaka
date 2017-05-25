@@ -37,14 +37,71 @@
     bg_view.image = GETYCIMAGE(@"kaKa_logo");
     [self.view addSubview:bg_view];
     
+    // app版本
+    NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
+    NSString *app_Version = [infoDictionary objectForKey:@"CFBundleShortVersionString"];
+    
+    UILabel *appVersion = [self setAttributeLabelWithFrame:CGRectMake((SCREEN_WIDTH-150*PSDSCALE_X)/2, 300*PSDSCALE_Y, 150*PSDSCALE_X, 35*PSDSCALE_Y) textAlignment:NSTextAlignmentCenter font:[UIFont systemFontOfSize:28*FONTCALE_Y] textColor:RGBSTRING(@"333333") text:[NSString stringWithFormat:@"V%@",app_Version]];
+    [self.view addSubview:appVersion];
+    //服务热线
+    UIView *phoneView = [self servicePhone];
+    
+    //公司官网
+    
+    UIView *webView = [self companyOfficialWebsiteBelow:phoneView];
+    
+    //版权有关的view
+    [self companyInfoBelow:webView];
+    
+}
+
+//版权有关的view
+- (void)companyInfoBelow:(UIView *)view
+{
+    UILabel *lab1 = [self setAttributeLabelWithFrame:CGRectMake(0, VIEW_H_Y(view)+400*PSDSCALE_Y, SCREEN_WIDTH, 35*PSDSCALE_Y) textAlignment:NSTextAlignmentCenter font:[UIFont systemFontOfSize:28*FONTCALE_Y] textColor:RGBSTRING(@"333333") text:@"使用条款和隐私政策"];
+    
+    [self.view addSubview:lab1];
+    
+    UILabel *lab2 = [self setAttributeLabelWithFrame:CGRectMake(0, VIEW_H_Y(lab1)+27*PSDSCALE_Y, SCREEN_WIDTH, 23*PSDSCALE_Y) textAlignment:NSTextAlignmentCenter font:[UIFont systemFontOfSize:18*FONTCALE_Y] textColor:RGBSTRING(@"919191") text:@"伊爱高新 版权所有"];
+    
+    [self.view addSubview:lab2];
+    
+    UILabel *lab3 = [self setAttributeLabelWithFrame:CGRectMake(0, VIEW_H_Y(lab2)+27*PSDSCALE_Y, SCREEN_WIDTH, 23*PSDSCALE_Y) textAlignment:NSTextAlignmentCenter font:[UIFont systemFontOfSize:18*FONTCALE_Y] textColor:RGBSTRING(@"919191") text:@"Copyright©2015-2017"];
+    
+    [self.view addSubview:lab3];
+    
+    UILabel *lab4 = [self setAttributeLabelWithFrame:CGRectMake(0, VIEW_H_Y(lab3)+27*PSDSCALE_Y, SCREEN_WIDTH, 23*PSDSCALE_Y) textAlignment:NSTextAlignmentCenter font:[UIFont systemFontOfSize:18*FONTCALE_Y] textColor:RGBSTRING(@"919191") text:@"All rights reserved"];
+    
+    [self.view addSubview:lab4];
+}
+
+//公司官网
+- (UIView *)companyOfficialWebsiteBelow:(UIView *)view
+{
+    UIView *webView = [[UIView alloc] initWithFrame:CGRectMake(0, VIEW_H_Y(view)+1, SCREEN_WIDTH, 100*PSDSCALE_Y)];
+    webView.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:webView];
+    
+    UILabel *companyLab = [self setAttributeLabelWithFrame:CGRectMake(0, 33*PSDSCALE_Y, 150*PSDSCALE_X, 35*PSDSCALE_Y) textAlignment:NSTextAlignmentRight font:[UIFont systemFontOfSize:28*FONTCALE_Y] textColor:RGBSTRING(@"333333") text:@"公司官网:"];
+    
+    [webView addSubview:companyLab];
+    
+    UILabel *netLab = [self setAttributeLabelWithFrame:CGRectMake(0, 37*PSDSCALE_Y, 721*PSDSCALE_X, 35*PSDSCALE_Y) textAlignment:NSTextAlignmentRight font:[UIFont systemFontOfSize:28*FONTCALE_Y] textColor:RGBSTRING(@"333333") text:@"www.e-eye.cn"];
+    
+    [webView addSubview:netLab];
+    
+    return webView;
+}
+
+//服务热线
+- (UIView *)servicePhone
+{
     UIView *phoneView = [[UIView alloc] initWithFrame:CGRectMake(0, 368*PSDSCALE_Y, SCREEN_WIDTH, 100*PSDSCALE_Y)];
     phoneView.backgroundColor = [UIColor whiteColor];
     [self.view addSubview:phoneView];
-    UILabel *fuWuLab = [[UILabel alloc] initWithFrame:CGRectMake(0, 33*PSDSCALE_Y, 150*PSDSCALE_X, 35*PSDSCALE_Y)];
-    fuWuLab.text = @"服务热线:";
-    fuWuLab.textAlignment = NSTextAlignmentRight;
-    fuWuLab.font = [UIFont systemFontOfSize:28*FONTCALE_Y];
-    fuWuLab.textColor = RGBSTRING(@"333333");
+    
+    UILabel *fuWuLab = [self setAttributeLabelWithFrame:CGRectMake(0, 33*PSDSCALE_Y, 150*PSDSCALE_X, 35*PSDSCALE_Y) textAlignment:NSTextAlignmentRight font:[UIFont systemFontOfSize:28*FONTCALE_Y] textColor:RGBSTRING(@"333333") text:@"服务热线:"];
+    
     [phoneView addSubview:fuWuLab];
     
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(call_click)];
@@ -52,63 +109,12 @@
     [phoneView addGestureRecognizer:tap];
     
     phone = @"4006121122";
-    UILabel *phoneLab = [[UILabel alloc] initWithFrame:CGRectMake(0, 37*PSDSCALE_Y, 721*PSDSCALE_X, 35*PSDSCALE_Y)];
-    phoneLab.text = phone;
-    phoneLab.textColor = RGBSTRING(@"333333");
-    phoneLab.textAlignment = NSTextAlignmentRight;
-    phoneLab.font = [UIFont systemFontOfSize:28*FONTCALE_Y];
+    
+    UILabel *phoneLab = [self setAttributeLabelWithFrame:CGRectMake(0, 37*PSDSCALE_Y, 721*PSDSCALE_X, 35*PSDSCALE_Y) textAlignment:NSTextAlignmentRight font:[UIFont systemFontOfSize:28*FONTCALE_Y] textColor:RGBSTRING(@"333333") text:phone];
+    
     [phoneView addSubview:phoneLab];
     
-    
-    UIView *webView = [[UIView alloc] initWithFrame:CGRectMake(0, VIEW_H_Y(phoneView)+1, SCREEN_WIDTH, 100*PSDSCALE_Y)];
-    webView.backgroundColor = [UIColor whiteColor];
-    [self.view addSubview:webView];
-    UILabel *companyLab = [[UILabel alloc] initWithFrame:CGRectMake(0, 33*PSDSCALE_Y, 150*PSDSCALE_X, 35*PSDSCALE_Y)];
-    companyLab.text = @"公司官网:";
-    companyLab.textAlignment = NSTextAlignmentRight;
-    companyLab.font = [UIFont systemFontOfSize:28*FONTCALE_Y];
-    companyLab.textColor = RGBSTRING(@"333333");
-    [webView addSubview:companyLab];
-    
-    UILabel *netLab = [[UILabel alloc] initWithFrame:CGRectMake(0, 37*PSDSCALE_Y, 721*PSDSCALE_X, 35*PSDSCALE_Y)];
-    netLab.text = @"www.e-eye.cn";
-    netLab.textColor = RGBSTRING(@"333333");
-    netLab.textAlignment = NSTextAlignmentRight;
-    netLab.font = [UIFont systemFontOfSize:28*FONTCALE_Y];
-    [webView addSubview:netLab];
-    
-    
-    UILabel *lab1 = [[UILabel alloc] initWithFrame:CGRectMake(0, VIEW_H_Y(webView)+400*PSDSCALE_Y, SCREEN_WIDTH, 35*PSDSCALE_Y)];
-    lab1.text = @"使用条款和隐私政策";
-    lab1.textAlignment = NSTextAlignmentCenter;
-    lab1.textColor = RGBSTRING(@"333333");
-    lab1.font = [UIFont systemFontOfSize:28*FONTCALE_Y];
-    [self.view addSubview:lab1];
-    
-    UILabel *lab2 = [[UILabel alloc] initWithFrame:CGRectMake(0, VIEW_H_Y(lab1)+27*PSDSCALE_Y, SCREEN_WIDTH, 23*PSDSCALE_Y)];
-    lab2.textAlignment = NSTextAlignmentCenter;
-    lab2.font = [UIFont systemFontOfSize:18*FONTCALE_Y];
-    lab2.textColor = RGBSTRING(@"919191");
-    lab2.text = @"伊爱高新 版权所有";
-    [self.view addSubview:lab2];
-    
-    UILabel *lab3 = [[UILabel alloc] initWithFrame:CGRectMake(0, VIEW_H_Y(lab2)+27*PSDSCALE_Y, SCREEN_WIDTH, 23*PSDSCALE_Y)];
-    lab3.textAlignment = NSTextAlignmentCenter;
-    lab3.font = [UIFont systemFontOfSize:18*FONTCALE_Y];
-    lab3.textColor = RGBSTRING(@"919191");
-    lab3.text = @"Copyright©2015-2017";
-    [self.view addSubview:lab3];
-    
-    UILabel *lab4 = [[UILabel alloc] initWithFrame:CGRectMake(0, VIEW_H_Y(lab3)+27*PSDSCALE_Y, SCREEN_WIDTH, 23*PSDSCALE_Y)];
-    lab4.textAlignment = NSTextAlignmentCenter;
-    lab4.font = [UIFont systemFontOfSize:18*FONTCALE_Y];
-    lab4.textColor = RGBSTRING(@"919191");
-    lab4.text = @"All rights reserved";
-    [self.view addSubview:lab4];
-    
-    
-    
-    
+    return phoneView;
 }
 
 - (void)call_click
@@ -132,6 +138,19 @@
         default:
             break;
     }
+}
+
+//设置文字
+- (UILabel *)setAttributeLabelWithFrame:(CGRect)frame textAlignment:(NSTextAlignment)textAlignment font:(UIFont *)font textColor:(UIColor *)textColor text:(NSString *)text
+{
+    UILabel *label = [[UILabel alloc] initWithFrame:frame];
+    label.textAlignment = textAlignment;
+    label.font = font;
+    label.textColor = textColor;
+    label.text = text;
+    
+    return label;
+
 }
 
 @end

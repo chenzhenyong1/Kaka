@@ -522,7 +522,7 @@ typedef void (^CutFinishReturn)(void);
     
     self.stopTime = self.playView.durationTime;
     
-    [self orginSoundBtnClick:self.orginSoundButton];
+//    [self orginSoundBtnClick:self.orginSoundButton];
 
 }
 

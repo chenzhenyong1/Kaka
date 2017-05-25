@@ -9,13 +9,26 @@
 #import "AlbumsTravelReviewViewDetailController.h"
 #import "AlbumsTravelDetailModel.h"
 #import <TuSDKGeeV1/TuSDKGeeV1.h>
-@interface AlbumsTravelReviewViewDetailController ()<UITextViewDelegate>
+#import "PhotoCell.h"
+
+
+static NSString * const PhotoCellID = @"PhotoCell";
+
+@interface AlbumsTravelReviewViewDetailController ()<UITextViewDelegate,UICollectionViewDataSource,UICollectionViewDelegate,UICollectionViewDelegateFlowLayout>
 {
     // 照片美化编辑组件
     TuSDKCPPhotoEditMultipleComponent *_photoEditMultipleComponent;
 }
-// 选择下标
-@property (nonatomic, assign) NSInteger select_index;
+
+
+/** 选中的位置 */
+@property (nonatomic, strong) NSIndexPath *selectedIndexPath;
+
+/** collectionView */
+@property (nonatomic, weak) UICollectionView *collectionView;
+
+
+
 @end
 
 @implementation AlbumsTravelReviewViewDetailController
@@ -23,8 +36,7 @@
     UIImageView *detailImage;
     UITextView *opinionTextView;
     UILabel *tishiLab;
-    UIScrollView *_scrollView;
-    UIButton *_old_btn;
+   
     UIButton *_share_btn;
     
     
@@ -35,11 +47,14 @@
     [self addTitleWithName:@"我的游记" wordNun:4];
     self.view.backgroundColor = RGBSTRING(@"eeeeee");
     
+    
+    
+ 
     __weak typeof(self) weakSelf = self;
     [self addRightButtonWithName:GETYCIMAGE(@"albums_meihua") wordNum:2 actionBlock:^(UIButton *sender) {
         
-        if (weakSelf.select_index < _model.dataSource.count) {
-            AlbumsTravelDetailModel *selectDetailModel = weakSelf.model.dataSource[weakSelf.select_index];
+        if (weakSelf.selectedIndexPath.row < weakSelf.model.dataSource.count) {
+            AlbumsTravelDetailModel *selectDetailModel = weakSelf.model.dataSource[weakSelf.selectedIndexPath.row];
             NSString *path = [Travel_Path(weakSelf.cameraMac) stringByAppendingPathComponent:[NSString stringWithFormat:@"/%ld", (long)selectDetailModel.travelId]];
             NSString *imagePath = [path stringByAppendingString:[NSString stringWithFormat:@"/%@", selectDetailModel.fileName]];
             
@@ -59,6 +74,11 @@
     }];
     
     [self initUI];
+    [self collectionView:self.collectionView didSelectItemAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+   
+    
+    
+    
 }
 
 - (void)initUI
@@ -67,17 +87,6 @@
     detailImage.contentMode = UIViewContentModeScaleAspectFill;
     detailImage.clipsToBounds = YES;
     [self.view addSubview:detailImage];
-    
-    AlbumsTravelDetailModel *firstDetailModel = [_model.dataSource firstObject];
-    NSString *path = [Travel_Path(self.cameraMac) stringByAppendingPathComponent:[NSString stringWithFormat:@"/%ld", (long)firstDetailModel.travelId]];
-    NSString *imagePath = [path stringByAppendingString:[NSString stringWithFormat:@"/%@", firstDetailModel.fileName]];
-    
-    NSData *imageData = [NSData dataWithContentsOfFile:imagePath];
-    UIImage *image = [UIImage imageWithData:imageData];
-    detailImage.image = image;
-    
-    self.select_index = 0;
-
     
     opinionTextView = [[UITextView alloc] initWithFrame:CGRectMake(0, VIEW_H_Y(detailImage), SCREEN_WIDTH, 275*PSDSCALE_Y)];
     opinionTextView.font = [UIFont systemFontOfSize:30*PSDSCALE_Y];
@@ -94,10 +103,7 @@
     tishiLab.textColor = RGBSTRING(@"9a9a9a");
     [opinionTextView addSubview:tishiLab];
     [self.view addSubview:opinionTextView];
-    if (firstDetailModel.mood.length) {
-        opinionTextView.text = firstDetailModel.mood;
-        tishiLab.text = @"";
-    }
+
     
     UIButton *share_btn = [[UIButton alloc] initWithFrame:CGRectMake(27*PSDSCALE_X, VIEW_H_Y(opinionTextView)+18*PSDSCALE_Y, 65*PSDSCALE_X, 47*PSDSCALE_Y)];
     [share_btn setImage:GETYCIMAGE(@"albums_my_youji_share_nor") forState:UIControlStateNormal];
@@ -105,9 +111,7 @@
     [share_btn addTarget:self action:@selector(share_btn_click:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:share_btn];
     _share_btn = share_btn;
-    if (!firstDetailModel.shared) {
-        share_btn.selected = YES;
-    }
+
     
     UILabel *lab = [[UILabel alloc] initWithFrame:CGRectMake(VIEW_W_X(share_btn)+29*PSDSCALE_X, VIEW_H_Y(opinionTextView)+30*PSDSCALE_Y, 200*PSDSCALE_X, 32*PSDSCALE_Y)];
     lab.text = @"不分享此照片";
@@ -117,52 +121,42 @@
     [self.view addSubview:lab];
     
     
-    _scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, SCREEN_HEIGHT-NAVIGATIONBARHEIGHT-148*PSDSCALE_Y, SCREEN_WIDTH, 148*PSDSCALE_Y)];
-    _scrollView.backgroundColor = [UIColor grayColor];
-    _scrollView.showsHorizontalScrollIndicator = NO;
+    // 流水布局:调整cell尺寸
+    UICollectionViewFlowLayout *layout = ({
+        
+        UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
+        layout.itemSize = CGSizeMake(155*PSDSCALE_X, 88*PSDSCALE_Y);
+        layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
+        // 设置最小行间距
+        layout.minimumLineSpacing = 0;
+        
+        layout;
+        
+    });
+    
+    // 创建UICollectionView:黑色
+    UICollectionView *collectionView = ({
+        
+        UICollectionView *collectionView =  [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
+        collectionView.backgroundColor = [UIColor grayColor];
+        collectionView.center = self.view.center;
+        collectionView.frame = CGRectMake(0, SCREEN_HEIGHT-NAVIGATIONBARHEIGHT-148*PSDSCALE_Y, SCREEN_WIDTH, 148*PSDSCALE_Y);
+        collectionView.showsHorizontalScrollIndicator = NO;
+        [self.view addSubview:collectionView];
+        
+        // 设置数据源
+        collectionView.dataSource = self;
+        collectionView.delegate = self;
+        
+        collectionView;
+        
+    });
+    self.collectionView = collectionView;
+    
+    // 注册cell
+    [collectionView registerClass:[PhotoCell class] forCellWithReuseIdentifier:PhotoCellID];
+    
 
-    [self.view addSubview:_scrollView];
-    
-    for (int i = 0; i < _model.dataSource.count; i ++)
-    {
-        AlbumsTravelDetailModel *model = [_model.dataSource objectAtIndex:i];
-        
-        UIButton *btn = [[UIButton alloc] init];
-        btn.tag = i+1;
-        if (i==0)
-        {
-            btn.frame = CGRectMake(0, 24*PSDSCALE_Y, 186*PSDSCALE_X, 106*PSDSCALE_Y);
-            btn.userInteractionEnabled = NO;
-            _old_btn = btn;
-        }
-        else
-        {
-            btn.frame = CGRectMake(157*PSDSCALE_X*i+31*PSDSCALE_X, 33*PSDSCALE_Y, 155*PSDSCALE_X, 88*PSDSCALE_Y);
-        }
-        
-        
-        NSString *path = [Travel_Path(self.cameraMac) stringByAppendingPathComponent:[NSString stringWithFormat:@"/%ld", (long)model.travelId]];
-        NSString *imagePath = [path stringByAppendingString:[NSString stringWithFormat:@"/%@", model.fileName]];
-        
-        NSData *imageData = [NSData dataWithContentsOfFile:imagePath];
-        UIImage *image = [UIImage imageWithData:imageData];
-        btn.imageView.contentMode = UIViewContentModeScaleAspectFill;
-        btn.imageView.clipsToBounds = YES;
-        [btn setImage:image forState:UIControlStateNormal];
-        
-        [btn addTarget:self action:@selector(btn_click:) forControlEvents:UIControlEventTouchUpInside];
-        [_scrollView addSubview:btn];
-        
-        UIImageView *unShare_imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 44*PSDSCALE_X, 28*PSDSCALE_Y)];
-        unShare_imageView.image = GETYCIMAGE(@"albums_my_youji_share_sel");
-        unShare_imageView.contentMode = UIViewContentModeScaleAspectFit;
-        unShare_imageView.center = CGPointMake(VIEW_W(btn)/2, VIEW_H(btn)/2);
-        unShare_imageView.tag = 100;
-        [btn addSubview:unShare_imageView];
-        unShare_imageView.hidden = model.shared;
-    }
-    
-    _scrollView.contentSize = CGSizeMake(_model.dataSource.count*157*PSDSCALE_X+33*PSDSCALE_Y, 0);
     
 }
 
@@ -220,10 +214,11 @@
 -(void)openEditorWithImage:(UIImage *)image
 {
     detailImage.image = image;
-    [_old_btn setImage:image forState:UIControlStateNormal];
+    [self.collectionView reloadData];
+//    [_old_btn setImage:image forState:UIControlStateNormal];
     //保存到游记相册     Save to album
     
-    AlbumsTravelDetailModel *selectDetailModel = [_model.dataSource objectAtIndex:_old_btn.tag - 1];
+    AlbumsTravelDetailModel *selectDetailModel = [_model.dataSource objectAtIndex:self.selectedIndexPath.row];
     NSString *path = [Travel_Path(self.cameraMac) stringByAppendingPathComponent:[NSString stringWithFormat:@"/%ld", (long)selectDetailModel.travelId]];
     if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
         [[NSFileManager defaultManager] createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:nil];
@@ -242,162 +237,17 @@
 
 
 
-
-
-
-
-
 - (void)share_btn_click:(UIButton *)btn
 {
     btn.selected = !btn.isSelected;
     
-    UIView *unShare_imageView = [_old_btn viewWithTag:100];
-    unShare_imageView.hidden = !btn.selected;
-    
-    AlbumsTravelDetailModel *detailModel = [_model.dataSource objectAtIndex:_old_btn.tag - 1];
+    AlbumsTravelDetailModel *detailModel = [_model.dataSource objectAtIndex:self.selectedIndexPath.row];
     detailModel.shared = !btn.selected;
     
     // 保存到数据库
     [CacheTool updateTravelDetailWithDetailModel:detailModel];
-}
-
-
-- (void)btn_click:(UIButton *)btn
-{
     
-    if (btn.tag > _old_btn.tag)
-    {
-        btn.userInteractionEnabled = NO;
-        _old_btn.userInteractionEnabled = YES;
-        CGRect frame = btn.frame;
-        
-        frame = _old_btn.frame;
-        frame.size.width = 155*PSDSCALE_X;
-        frame.size.height = 88*PSDSCALE_Y;
-        frame.origin.y =33*PSDSCALE_Y;
-        frame.origin.x = 157*PSDSCALE_X * (_old_btn.tag -1);
-        _old_btn.frame = frame;
-        
-        UIView *old_unShare_imageView = [_old_btn viewWithTag:100];
-        old_unShare_imageView.center = CGPointMake(VIEW_W(btn)/2, VIEW_H(btn)/2);
-        
-        frame.size.width = 186*PSDSCALE_X;
-        frame.size.height = 106*PSDSCALE_Y;
-        frame.origin.y =24*PSDSCALE_Y;
-        frame.origin.x =157*PSDSCALE_X * (btn.tag -1);
-        btn.frame = frame;
-        
-        
-        
-        
-        if (btn.tag - _old_btn.tag == 1)
-        {
-            for (NSInteger i = btn.tag; i <_model.dataSource.count; i ++)
-            {
-                UIButton *temp_btn = (UIButton *)_scrollView.subviews[i];
-                frame = temp_btn.frame;
-                frame.origin.x = 157*PSDSCALE_X*i+31*PSDSCALE_X;
-                temp_btn.frame =frame;
-            }
-        }
-        else
-        {
-            for (NSInteger i = _old_btn.tag; i < btn.tag; i ++)
-            {
-                UIButton *temp_btn = (UIButton *)_scrollView.subviews[i];
-                frame = temp_btn.frame;
-                
-                frame.origin.x = 157*PSDSCALE_X*i;
-                temp_btn.frame =frame;
-            }
-            
-            for (NSInteger i = btn.tag; i <_model.dataSource.count; i ++)
-            {
-                UIButton *temp_btn = (UIButton *)_scrollView.subviews[i];
-                frame = temp_btn.frame;
-                frame.origin.x = 157*PSDSCALE_X*i+31*PSDSCALE_X;
-                temp_btn.frame =frame;
-            }
-        }
-        _old_btn = btn;
-        
-    }
-    else
-    {
-        _old_btn.userInteractionEnabled = YES;
-        btn.userInteractionEnabled = NO;
-        CGRect frame = _old_btn.frame;
-        frame.origin.x +=31*PSDSCALE_X;
-        frame.size.width = 155*PSDSCALE_X;
-        frame.size.height = 88*PSDSCALE_Y;
-        frame.origin.y =33*PSDSCALE_Y;
-        _old_btn.frame = frame;
-        UIView *old_unShare_imageView = [_old_btn viewWithTag:100];
-        old_unShare_imageView.center = CGPointMake(VIEW_W(btn)/2, VIEW_H(btn)/2);
-        
-        if (_old_btn.tag -btn.tag == 1) {
-            
-            for (NSInteger i =_old_btn.tag; i <_model.dataSource.count; i ++)
-            {
-                UIButton *temp_btn = (UIButton *)_scrollView.subviews[i];
-                frame = temp_btn.frame;
-                frame.origin.x = 157*PSDSCALE_X*i+31*PSDSCALE_X;
-                temp_btn.frame =frame;
-            }
-        }
-        else
-        {
-            for (NSInteger i =btn.tag; i <_old_btn.tag; i ++)
-            {
-                UIButton *temp_btn = (UIButton *)_scrollView.subviews[i];
-                frame = temp_btn.frame;
-                frame.origin.x = 157*PSDSCALE_X*i+31*PSDSCALE_X;
-                temp_btn.frame =frame;
-            }
-            
-            for (NSInteger i =_old_btn.tag; i <_model.dataSource.count; i ++)
-            {
-                UIButton *temp_btn = (UIButton *)_scrollView.subviews[i];
-                frame = temp_btn.frame;
-                frame.origin.x = 157*PSDSCALE_X*i+31*PSDSCALE_X;
-                temp_btn.frame =frame;
-            }
-        }
-        
-        
-        
-        frame = btn.frame;
-        frame.size.width = 186*PSDSCALE_X;
-        frame.size.height = 106*PSDSCALE_Y;
-        frame.origin.y =24*PSDSCALE_Y;
-        btn.frame = frame;
-        _old_btn = btn;
-        
-    }
-    
-    UIView *unShare_imageView = [_old_btn viewWithTag:100];
-    unShare_imageView.center = CGPointMake(VIEW_W(btn)/2, VIEW_H(btn)/2);
-    
-    AlbumsTravelDetailModel *detailModel = [_model.dataSource objectAtIndex:_old_btn.tag - 1];
-    unShare_imageView.hidden = detailModel.shared;
-    
-    self.select_index = _old_btn.tag - 1;
-    
-    NSString *path = [Travel_Path(self.cameraMac) stringByAppendingPathComponent:[NSString stringWithFormat:@"/%ld", (long)detailModel.travelId]];
-    NSString *imagePath = [path stringByAppendingString:[NSString stringWithFormat:@"/%@", detailModel.fileName]];
-    
-    NSData *imageData = [NSData dataWithContentsOfFile:imagePath];
-    UIImage *image = [UIImage imageWithData:imageData];
-    detailImage.image = image;
-
-    _share_btn.selected = !detailModel.shared;
-    if (detailModel.mood.length) {
-        opinionTextView.text = detailModel.mood;
-        tishiLab.text = @"";
-    } else {
-        tishiLab.text = @"写上您的心情吧....";
-        opinionTextView.text = nil;
-    }
+    [self.collectionView reloadItemsAtIndexPaths:@[self.selectedIndexPath]];
 }
 
 
@@ -429,7 +279,7 @@
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
     
-    AlbumsTravelDetailModel *detailModel = [_model.dataSource objectAtIndex:_old_btn.tag - 1];
+    AlbumsTravelDetailModel *detailModel = [_model.dataSource objectAtIndex:self.selectedIndexPath.row];
     detailModel.mood = textView.text;
     
     // 保存到数据库
@@ -437,6 +287,63 @@
 }
 
 
+#pragma mark - UICollectionViewDataSource
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
+{
+    return self.model.dataSource.count;
+}
 
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    
+    PhotoCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:PhotoCellID forIndexPath:indexPath];
+    
+    [cell refreshWithAlbumsTravelDetailModel:self.model.dataSource[indexPath.row] cameraMac:self.cameraMac];
+    
+    return cell;
+}
+
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    
+    
+    if (self.selectedIndexPath == indexPath) {
+        return CGSizeMake(186*PSDSCALE_X, 106*PSDSCALE_Y);
+    }else{
+        return CGSizeMake(155*PSDSCALE_X, 88*PSDSCALE_Y);
+    }
+    
+    
+}
+
+
+#pragma mark - UICollectionViewDelegate
+
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    self.selectedIndexPath = indexPath;
+    
+    
+    AlbumsTravelDetailModel *model = self.model.dataSource[indexPath.row];
+//    model.shared = !model.shared;
+    _share_btn.selected = !model.shared;
+    if (model.mood.length) {
+        opinionTextView.text = model.mood;
+        tishiLab.text = @"";
+    } else {
+        tishiLab.text = @"写上您的心情吧....";
+        opinionTextView.text = nil;
+    }
+    
+    NSString *path = [Travel_Path(self.cameraMac) stringByAppendingPathComponent:[NSString stringWithFormat:@"/%ld", (long)model.travelId]];
+    NSString *imagePath = [path stringByAppendingString:[NSString stringWithFormat:@"/%@", model.fileName]];
+    
+    NSData *imageData = [NSData dataWithContentsOfFile:imagePath];
+    UIImage *image = [UIImage imageWithData:imageData];
+    detailImage.image = image;
+
+    
+    [collectionView reloadData];
+}
 
 @end

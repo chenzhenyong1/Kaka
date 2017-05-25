@@ -459,6 +459,8 @@
 - (void)sendMessage:(NSString *)replyToId
 {
     
+    [self addActityLoading:nil subTitle:nil];
+    
     NSMutableDictionary *interactParams = [NSMutableDictionary dictionary];
     interactParams[@"subjectId"] = self.ID;
     interactParams[@"actType"] = @"4";//
@@ -475,6 +477,7 @@
     params[@"interact"] = interactParams;
    
     
+    
     [HttpTool post:subjectInteractive_URL params:params success:^(id responseObj) {
        
         ZYLog(@"SubjectInteractive_URL responseObj = %@",responseObj);
@@ -489,7 +492,12 @@
         }
         
     } failure:^(NSError *error) {
-        
+        if (replyToId != nil) {
+            [self addActityText:@"回复失败" deleyTime:1.0];
+        }else{
+            
+            [self addActityText:@"发表失败" deleyTime:1.0];
+        }
     }];
 
 }
