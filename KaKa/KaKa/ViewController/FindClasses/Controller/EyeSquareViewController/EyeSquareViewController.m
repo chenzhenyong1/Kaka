@@ -142,8 +142,21 @@
     NSMutableDictionary *params = [NSMutableDictionary dictionary];
     params[@"loginToken"] = LoginToken;
     
+    if (LoginToken == nil) {
+        return ;
+    }
     [HttpTool get:SubjectPiazza_URL params:params success:^(id responseObj) {
        
+        // 处理登录令牌过期
+        if ([responseObj[@"errCode"] integerValue] == -26) {
+            
+            [self.tableView.header endRefreshing];
+            
+            [self invalidTokenTip];
+            
+            return ;
+        }
+        
         EyeSquareModel *model = [EyeSquareModel mj_objectWithKeyValues:responseObj[@"result"]];
         
         //清楚旧数据
@@ -164,9 +177,35 @@
         
 //        [self addActityText:@"请检查网络连接" deleyTime:1];
         [self.tableView.header endRefreshing];
+        
         ZYLog(@"error = %@",error);
     }];
 }
+
+- (void)invalidTokenTip {
+    
+    UIAlertController *alertCtl = [UIAlertController alertControllerWithTitle:@"登录令牌过期" message:@"请重新登录" preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *action = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [NotificationCenter postNotificationName:@"loginStatusNotification" object:@"0"];
+        [SettingConfig shareInstance].isLogin = NO;
+        [SettingConfig shareInstance].ip_url = nil;
+        [SettingConfig shareInstance].currentCameraModel = nil;
+        [SettingConfig shareInstance].deviceLoginToken = nil;
+        
+        AsyncSocketManager *socketManager = [AsyncSocketManager sharedAsyncSocketManager];
+        socketManager.asyncSocket.userData = SocketOfflineByUser;
+        [socketManager disconnectSocket];
+        
+        [self.tabBarController setSelectedIndex:0];
+        [self.navigationController popViewControllerAnimated:NO];
+    }];
+    
+    [alertCtl addAction:action];
+    [self presentViewController:alertCtl animated:YES completion:nil];
+
+}
+
 /**
  *  广告栏数据
  */

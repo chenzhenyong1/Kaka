@@ -300,6 +300,7 @@
 		AAEEC6B11D82AF4300AD5846 /* EyeMyVideoControllerCellCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = AAEEC6B01D82AF4300AD5846 /* EyeMyVideoControllerCellCollectionViewCell.m */; };
 		AAEEEB2F1DBB1572003D907F /* EyeChangeSelectedPicModel.m in Sources */ = {isa = PBXBuildFile; fileRef = AAEEEB2E1DBB1572003D907F /* EyeChangeSelectedPicModel.m */; };
 		AAF3C6561D990F2B007C3CD2 /* EyeCheckPictureController.m in Sources */ = {isa = PBXBuildFile; fileRef = AAF3C6551D990F2B007C3CD2 /* EyeCheckPictureController.m */; };
+		AAF471381F09EAAD00D0567B /* MF_Base64Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = AAF471371F09EAAD00D0567B /* MF_Base64Additions.m */; };
 		F522893141649B82F6E0AAF1 /* libPods-KaKa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D64A4E8C7BB0B2C46765A88A /* libPods-KaKa.a */; };
 /* End PBXBuildFile section */
 
@@ -985,6 +986,8 @@
 		AAEEEB2E1DBB1572003D907F /* EyeChangeSelectedPicModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EyeChangeSelectedPicModel.m; sourceTree = "<group>"; };
 		AAF3C6541D990F2B007C3CD2 /* EyeCheckPictureController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyeCheckPictureController.h; sourceTree = "<group>"; };
 		AAF3C6551D990F2B007C3CD2 /* EyeCheckPictureController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EyeCheckPictureController.m; sourceTree = "<group>"; };
+		AAF471361F09EAAD00D0567B /* MF_Base64Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MF_Base64Additions.h; sourceTree = "<group>"; };
+		AAF471371F09EAAD00D0567B /* MF_Base64Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MF_Base64Additions.m; sourceTree = "<group>"; };
 		BED3274FDB1E032B0E52E522 /* Pods-KaKa.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KaKa.debug.xcconfig"; path = "Pods/Target Support Files/Pods-KaKa/Pods-KaKa.debug.xcconfig"; sourceTree = "<group>"; };
 		D64A4E8C7BB0B2C46765A88A /* libPods-KaKa.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KaKa.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -2022,6 +2025,8 @@
 				9FDD85781D3C8B9200CE8DA6 /* PRGCookieManager.m */,
 				9FDD85791D3C8B9200CE8DA6 /* RequestManager.h */,
 				9FDD857A1D3C8B9200CE8DA6 /* RequestManager.m */,
+				AAF471361F09EAAD00D0567B /* MF_Base64Additions.h */,
+				AAF471371F09EAAD00D0567B /* MF_Base64Additions.m */,
 				9F8084AD1D49F0B20081D176 /* WeChatManager.h */,
 				9F8084AE1D49F0B20081D176 /* WeChatManager.m */,
 				9F23FE451D460868008C732A /* QQManager.h */,
@@ -2946,6 +2951,7 @@
 				9F05F0591D7E6585003B350E /* TZPhotoPickerController.m in Sources */,
 				9FFC4AB21D3A0D49009D0869 /* main.m in Sources */,
 				12F552321D4ED943007C5DF0 /* AlbumsVideoViewControllerCell.m in Sources */,
+				AAF471381F09EAAD00D0567B /* MF_Base64Additions.m in Sources */,
 				AAEEC6AE1D82A53400AD5846 /* EyeVideoListView.m in Sources */,
 				9F05F0531D7E6585003B350E /* SDAVAssetExportSession.m in Sources */,
 				9F5C18021D65688C006B024D /* STConst.m in Sources */,
@@ -3171,7 +3177,7 @@
 					"$(SRCROOT)/KaKa/ThirdFrame/FFmpeg/FFmpeg-iOS/include",
 				);
 				INFOPLIST_FILE = KaKa/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -3290,7 +3296,7 @@
 					"$(SRCROOT)/KaKa/ThirdFrame/FFmpeg/FFmpeg-iOS/include",
 				);
 				INFOPLIST_FILE = KaKa/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",

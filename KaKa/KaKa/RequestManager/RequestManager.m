@@ -8,6 +8,8 @@
 
 #import "RequestManager.h"
 #import "AFNetworking.h"
+#import <CommonCrypto/CommonDigest.h>
+#import "MF_Base64Additions.h"
 
 @implementation RequestManager
 
@@ -128,11 +130,14 @@
  请求短信验证（post reqAuth）
  */
 + (void)reqAuthWithPhoneNumber:(NSString *)phone succeed:(Succeed)succeed failed:(Failed)failed{
-    NSString *url = [HeadURl stringByAppendingString:@"reqAuth"];
+    
+    NSString *url = [HeadURl stringByAppendingString:@"reqAuth2"];
+    NSString* code = gCode();
     NSDictionary *param_dic = @{@"appId":AppId,
                                 @"authMethod":@"sms",
                                 @"arg":phone,
-                                @"usedForAuth":@(YES)
+                                @"usedForAuth":@(YES),
+                                @"a": code
                                 };
     [RequestManager noCheckPostRequestWithUrlString:url withDic:param_dic Succeed:^(id responseObject) {
         succeed(responseObject);
@@ -588,8 +593,45 @@
 }
 
 
-
-
+const int VERSION = 2;
+NSString* gCode() {
+    unsigned char a[9+8];
+    a[0] = VERSION;
+    long long l = (long long)(NSTimeInterval)([[NSDate date] timeIntervalSince1970] * 1000);
+    a[1] = (unsigned char) ((l >> 56) & 0xFF);
+    a[2] = (unsigned char) ((l >> 48) & 0xFF);
+    a[3] = (unsigned char) ((l >> 40) & 0xFF);
+    a[4] = (unsigned char) ((l >> 32) & 0xFF);
+    a[5] = (unsigned char) ((l >> 24) & 0xFF);
+    a[6] = (unsigned char) ((l >> 16) & 0xFF);
+    a[7] = (unsigned char) ((l >> 8) & 0xFF);
+    a[8] = (unsigned char) (l & 0xFF);
+    a[9] = 0x68;
+    a[10] = 0xab;
+    a[11] = 0x74;
+    a[12] = 0xcf;
+    a[13] = 0x09;
+    a[14] = 0xdb;
+    a[15] = 0xa0;
+    a[16] = 0x51;
+    
+    unsigned char digest[CC_MD5_DIGEST_LENGTH];
+    CC_MD5(a, sizeof(a), digest);
+    
+    unsigned char r[9 + sizeof(digest)];
+    unsigned char* target = &r[0];
+    memcpy(target, a, 9);
+    target += 9;
+    memcpy(target, digest, sizeof(digest));
+    
+    NSData* data = [NSData dataWithBytes:r length:sizeof(r)];
+    
+    NSString *str = [MF_Base64Codec base64StringFromData:data];
+    
+    //    NSString* str = [data base64EncodedStringWithOptions:0];
+    
+    return str;
+}
 
 
 
